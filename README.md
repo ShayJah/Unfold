@@ -12,11 +12,13 @@ The quiz is one HTML file: mock exam laid out like the past exam, topic drills, 
 | `templates/cheatsheet-template.html` | 1-page, 3-column printable layout |
 | `course-pack/COURSE.md` | Fill this in per exam; give it to Claude instead of the PDFs |
 | `course-pack/notebooklm-prompt.md` | Prompt to condense slides with NotebookLM/Gemini |
-| `scripts/extract_notes.py` | PDFs → compact Markdown (~10–20× fewer tokens) |
+| `tools/slide-squeezer.html` | **Drag-and-drop** PDFs → one compact notes file. Open it in any browser, no setup |
+| `scripts/extract_notes.py` | Same thing from the terminal |
 | `scripts/check_quiz.js` | Checks every question grades correctly before you use it |
 
 ## Workflow per exam
-1. **Shrink the PDFs.**
+1. **Shrink the PDFs.** Open `tools/slide-squeezer.html` (double-click it), drop the PDFs in, save the `.md`.
+   Or from the terminal:
    ```bash
    python3 -m venv .venv && .venv/bin/pip install pypdf
    .venv/bin/python scripts/extract_notes.py ~/Downloads/lectures/*.pdf -o notes/

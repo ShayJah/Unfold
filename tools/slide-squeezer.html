@@ -1,0 +1,218 @@
+<meta charset="utf-8">
+<title>Slide Squeezer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=Public+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one 720px column. Drop zone → file list with before/after token counts → one combined notes file to copy or save. */
+:root{
+  --bg:#eef1f5; --surface:#ffffff; --surface-2:#f5f7fa; --ink:#141821; --muted:#5b6372; --line:#d8dde6;
+  --accent:#2f43c9; --accent-ink:#ffffff; --accent-soft:#e2e6fb; --hl:#ffe45c; --hl-ink:#141821;
+  --ok:#1d7a47; --bad:#b3372e; --warn:#93620b;
+  --f-display:"Schibsted Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Public Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1117; --surface:#161a23; --surface-2:#1c212c; --ink:#e4e8f1; --muted:#98a0b2; --line:#2a303d;
+  --accent:#8b9cf6; --accent-ink:#0c1230; --accent-soft:#222a4a; --hl:#e8cc3c; --hl-ink:#141821;
+  --ok:#5fcf8f; --bad:#f2867c; --warn:#e5b45a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1117; --surface:#161a23; --surface-2:#1c212c; --ink:#e4e8f1; --muted:#98a0b2; --line:#2a303d;
+  --accent:#8b9cf6; --accent-ink:#0c1230; --accent-soft:#222a4a; --hl:#e8cc3c; --hl-ink:#141821;
+  --ok:#5fcf8f; --bad:#f2867c; --warn:#e5b45a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body)}
+.wrap{max-width:720px;margin:0 auto;padding-block:40px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:20px}
+h1{font:800 clamp(30px,6vw,44px)/1.05 var(--f-display);margin:0;letter-spacing:-.02em;text-wrap:balance}
+h1 mark{background:linear-gradient(transparent 58%,var(--hl) 58%);color:inherit;padding:0 2px}
+.lede{margin:8px 0 0;color:var(--muted);max-width:60ch}
+.drop{border:2px dashed var(--line);border-radius:12px;background:var(--surface);padding:36px 20px;text-align:center;cursor:pointer;display:grid;gap:6px;justify-items:center;transition:border-color .15s,background .15s}
+.drop:hover,.drop:focus-visible,.drop.over{border-color:var(--accent);background:var(--accent-soft);outline:none}
+.drop b{font:700 19px var(--f-display)}
+.drop span{color:var(--muted);font-size:14px}
+.drop svg{width:34px;height:34px;color:var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:grid;gap:12px;min-width:0}
+.toprow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+h2{font:700 17px var(--f-display);margin:0}
+.files{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.file{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:8px 10px;border-radius:8px;background:var(--surface-2);min-width:0}
+.file .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.file .st{font:12.5px var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.file .st .img{color:var(--warn)}
+.file .st .err{color:var(--bad)}
+.file.example{opacity:.75}
+.tag{font:600 11px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 5px;margin-left:8px}
+.x{border:0;background:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:6px}
+.x:hover,.x:focus-visible{color:var(--bad);background:var(--surface);outline:none}
+.total{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.total .big{font:800 30px var(--f-display);letter-spacing:-.01em}
+.total .big mark{background:linear-gradient(transparent 60%,var(--hl) 60%);color:inherit}
+.total .sub{color:var(--muted);font-size:14px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:700 15px var(--f-display);border-radius:8px;padding:10px 16px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.sec{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px}
+.link{border:0;background:none;color:var(--muted);font:600 14px var(--f-body);cursor:pointer;text-decoration:underline;padding:0}
+textarea{width:100%;min-height:260px;resize:vertical;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font:12.5px/1.5 var(--f-mono);padding:10px 12px}
+.note{font-size:14px;color:var(--muted);margin:0}
+.status{font-size:14px;min-height:1.4em;margin:0}
+.status.ok{color:var(--ok)} .status.bad{color:var(--bad)}
+.how{display:grid;gap:4px;margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+.how b{color:var(--ink)}
+@media (max-width:480px){.file{grid-template-columns:1fr auto}.file .st{grid-column:1/-1;text-align:left}.file .x{grid-row:1;grid-column:2}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<main class="wrap">
+  <header>
+    <h1>Slide <mark>Squeezer</mark></h1>
+    <p class="lede">Drop in your lecture PDFs. You get one small notes file to give Claude instead, usually 10–20× fewer tokens. Your files stay in this browser and are never uploaded.</p>
+  </header>
+
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose PDF files">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-6"/><path d="m9 13 3-3 3 3"/></svg>
+    <b>Drop PDFs here</b>
+    <span>or click to choose. Add as many as you want.</span>
+    <input type="file" id="pick" accept="application/pdf,.pdf" multiple hidden>
+  </div>
+
+  <section class="panel" aria-live="polite">
+    <div class="toprow"><h2>Files</h2><button class="link" id="clear" hidden>Clear all</button></div>
+    <ul class="files" id="files"></ul>
+    <div class="total" id="total"></div>
+  </section>
+
+  <section class="panel">
+    <div class="toprow"><h2>Your notes file</h2>
+      <div class="btns"><button class="btn" id="save" disabled>Save .md file</button><button class="btn sec" id="copy" disabled>Copy all</button></div></div>
+    <p class="status" id="status"></p>
+    <textarea id="out" readonly spellcheck="false" aria-label="Combined notes" placeholder="Your combined notes appear here."></textarea>
+    <p class="note">Pages marked <code>[image only]</code> were pictures or diagrams with no text. Check those in the PDF if they matter.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Then</h2>
+    <ol class="how">
+      <li><b>Save the file</b> (or copy it).</li>
+      <li><b>Give it to Claude instead of the PDFs</b>, with the official topic list and the past exam.</li>
+      <li>Ask: “use study-drill with these notes for my midterm.”</li>
+    </ol>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmt = n => n >= 10000 ? Math.round(n / 1000) + 'k' : n.toLocaleString();
+const PDF_TOKENS_PER_PAGE = 1500; // rough: a PDF page sent to Claude costs ~1.5–3k tokens (text + page image)
+const docs = []; // { name, status, pages, md, imgPages, err }
+let busy = false;
+
+// pdf.js items → lines; break on end-of-line flags or a jump in y
+async function pageLines(page) {
+  const tc = await page.getTextContent(); const lines = []; let cur = '', y = null;
+  for (const it of tc.items) {
+    const iy = it.transform ? it.transform[5] : y;
+    if (y !== null && iy !== null && Math.abs(iy - y) > 2 && cur.trim()) { lines.push(cur); cur = ''; }
+    cur += it.str; y = iy;
+    if (it.hasEOL) { lines.push(cur); cur = ''; }
+  }
+  if (cur.trim()) lines.push(cur);
+  return lines.map(l => l.replace(/\s+/g, ' ').trim());
+}
+// same rules as scripts/extract_notes.py: drop slide build-up repeats, headers/footers, page numbers
+function squeeze(name, pages) {
+  const seen = new Map();
+  pages.forEach(p => new Set(p).forEach(l => l && seen.set(l, (seen.get(l) || 0) + 1)));
+  const boiler = new Set(pages.length >= 5 ? [...seen].filter(([, n]) => n >= 0.4 * pages.length).map(([l]) => l) : []);
+  const out = [`# ${name.replace(/\.pdf$/i, '')}`]; let prev = new Set(), img = 0;
+  pages.forEach((lines, i) => {
+    const keep = lines.filter(l => l && !prev.has(l) && !boiler.has(l) && !/^\d{1,3}(\s*\/\s*\d{1,3})?$/.test(l));
+    prev = new Set(lines);
+    if (keep.length) out.push(`\n## p${i + 1}\n${keep.join('\n')}`);
+    else if (!lines.some(Boolean)) { out.push(`\n## p${i + 1}\n[image only: check the PDF]`); img++; }
+  });
+  return { md: out.join('\n') + '\n', img };
+}
+async function readPdf(d, file) {
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+  d.pages = pdf.numPages; const pages = [];
+  for (let i = 1; i <= pdf.numPages; i++) { d.status = `reading ${i}/${pdf.numPages}`; if (i % 3 === 1) render(); pages.push(await pageLines(await pdf.getPage(i))); }
+  pdf.destroy();
+  const r = squeeze(d.name, pages); d.md = r.md; d.imgPages = r.img; d.status = 'done';
+}
+async function addFiles(list) {
+  const pdfs = [...list].filter(f => /\.pdf$/i.test(f.name) || f.type === 'application/pdf');
+  if (!pdfs.length) return setStatus('Those weren’t PDFs. Drop .pdf files.', 'bad');
+  setStatus('');
+  const queued = pdfs.map(f => { const d = { name: f.name, status: 'waiting' }; docs.push(d); return [d, f]; });
+  render();
+  if (busy) return; busy = true;
+  for (const [d, f] of queued) {
+    try { await readPdf(d, f); } catch (e) { d.status = 'error'; d.err = /password/i.test(e.message) ? 'password-protected' : 'couldn’t read this PDF'; }
+    render();
+  }
+  busy = false; render();
+}
+const combined = () => docs.filter(d => d.md).map(d => d.md).join('\n---\n\n');
+function render() {
+  const done = docs.filter(d => d.md);
+  $('#clear').hidden = !docs.length;
+  $('#files').innerHTML = docs.length ? docs.map((d, i) => `<li class="file"><span class="nm" title="${esc(d.name)}">${esc(d.name)}</span><span class="st">${
+    d.status === 'done' ? `${d.pages} pages → ${fmt(Math.ceil(d.md.length / 4))} tokens${d.imgPages ? ` · <span class="img">${d.imgPages} image-only</span>` : ''}`
+    : d.status === 'error' ? `<span class="err">${esc(d.err)}</span>` : esc(d.status)}</span><button class="x" data-i="${i}" aria-label="Remove ${esc(d.name)}" ${d.status !== 'done' && d.status !== 'error' ? 'disabled' : ''}>×</button></li>`).join('')
+    : `<li class="file example"><span class="nm">304_10_EER.pdf<span class="tag">Example</span></span><span class="st">28 pages → 2,717 tokens</span><span></span></li>
+       <li class="file example"><span class="nm">304_11_ER_to_Relational.pdf<span class="tag">Example</span></span><span class="st">30 pages → 2,407 tokens</span><span></span></li>`;
+  document.querySelectorAll('.x[data-i]').forEach(b => b.onclick = () => { docs.splice(+b.dataset.i, 1); render(); });
+  const pages = done.reduce((s, d) => s + d.pages, 0), md = combined(), after = Math.ceil(md.length / 4), before = pages * PDF_TOKENS_PER_PAGE;
+  $('#total').innerHTML = done.length
+    ? `<span class="big">${fmt(before)}+ → <mark>${fmt(after)}</mark> tokens</span><span class="sub">${pages} pages in ${done.length} PDF${done.length > 1 ? 's' : ''} · about ${Math.max(1, Math.round(before / Math.max(after, 1)))}× smaller</span>`
+    : docs.length ? '' : `<span class="big">87k+ → <mark>5k</mark> tokens</span><span class="sub">Example: two database lecture decks, 58 pages</span>`;
+  $('#out').value = md; $('#save').disabled = $('#copy').disabled = !md || busy;
+}
+const setStatus = (t, cls = '') => { const s = $('#status'); s.textContent = t; s.className = 'status ' + cls; };
+const fileName = () => (docs.length === 1 ? docs[0].name.replace(/\.pdf$/i, '') : 'lecture-notes') + '.md';
+
+// saving: the artifact viewer's downloads capability; a plain browser falls back to a normal download link
+let downloads;
+const ready = window.claude && claude.use ? claude.use('downloads').then(d => { downloads = d; if (!d) { $('#save').hidden = true; } }) : Promise.resolve();
+$('#save').onclick = async () => {
+  const data = combined(); if (!data) return;
+  if (window.claude && claude.use) {
+    await ready;
+    if (!downloads) return setStatus('Saving isn’t available here. Use Copy all instead.', 'bad');
+    try { await downloads.save({ filename: fileName(), data }); setStatus('Saved ' + fileName() + '.', 'ok'); }
+    catch (e) { setStatus(e && e.code === 'declined' ? 'Save cancelled.' : 'Couldn’t save the file. Use Copy all instead.', e && e.code === 'declined' ? '' : 'bad'); }
+  } else {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'text/markdown' })); a.download = fileName(); a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000); setStatus('Saved ' + fileName() + '.', 'ok');
+  }
+};
+$('#copy').onclick = () => {
+  const ta = $('#out');
+  navigator.clipboard.writeText(ta.value).then(() => setStatus('Copied. Paste it into Claude.', 'ok'),
+    () => { ta.focus(); ta.select(); setStatus('Text selected. Press ⌘C (or Ctrl+C) to copy.'); });
+};
+$('#clear').onclick = () => { if (busy) return; docs.length = 0; setStatus(''); render(); };
+
+const drop = $('#drop'), pick = $('#pick');
+drop.onclick = () => pick.click();
+drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick.click(); } };
+pick.onchange = () => { addFiles(pick.files); pick.value = ''; };
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+// dropping anywhere else shouldn't make the browser open the PDF
+['dragover', 'drop'].forEach(t => window.addEventListener(t, e => e.preventDefault()));
+
+if (!window.pdfjsLib) { setStatus('The PDF reader didn’t load. Check your connection and reload.', 'bad'); drop.style.pointerEvents = 'none'; }
+render();
+window.__sq = { squeeze };
+})();
+</script>
