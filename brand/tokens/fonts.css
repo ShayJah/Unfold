@@ -1,0 +1,9 @@
+:root {
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-display-weight: 400;
+  --font-display-tracking: -0.010em;
+  --font-text: "Instrument Sans", system-ui, sans-serif;
+  --font-text-weight: 400;
+  --font-text-tracking: 0.000em;
+  --font-text-variation: "wdth" 100;
+}

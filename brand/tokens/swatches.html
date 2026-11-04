@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kept swatches</title>
+<style>
+  :root { --ink:#16181d; --muted:#5b6170; --line:#e3e5ea; --paper:#ffffff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink);
+    font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; }
+  main { max-width:1180px; margin:0 auto; padding:48px 40px 64px; }
+  header { display:flex; justify-content:space-between; align-items:flex-end; gap:24px;
+    border-bottom:1px solid var(--line); padding-bottom:20px; margin-bottom:32px; }
+  h1 { font-size:34px; letter-spacing:-0.02em; margin:0; }
+  h2 { font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:40px 0 14px; }
+  header p { margin:6px 0 0; color:var(--muted); max-width:640px; }
+  .mono { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px; }
+  .muted { color:var(--muted); }
+  .audit { margin:0; font-size:13px; color:var(--muted); white-space:nowrap; }
+  .brands { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:20px; }
+  .brand { margin:0; border:1px solid var(--line); border-radius:14px; overflow:hidden; break-inside:avoid; }
+  .brand .chip { height:150px; padding:16px; display:flex; justify-content:space-between; align-items:flex-end;
+    font-weight:600; font-size:16px; }
+  .brand em { font-style:normal; font-size:11px; letter-spacing:.08em; text-transform:uppercase; opacity:.8; }
+  .ext-chip { display:grid; grid-template-columns:1fr 1fr; height:120px; }
+  .ext-half { padding:12px; display:flex; flex-direction:column; justify-content:space-between; font-size:12px; }
+  figcaption { display:flex; flex-direction:column; gap:3px; padding:14px 16px; font-size:12.5px; }
+  figcaption b { font-size:15px; }
+  .scale { display:grid; grid-template-columns:120px 1fr; gap:12px; align-items:stretch; margin-bottom:8px;
+    break-inside:avoid; }
+  .scale-name { font-weight:600; display:flex; flex-direction:column; justify-content:center; }
+  .scale-name small { font-weight:400; color:var(--muted); font-size:11px; }
+  .steps { display:grid; grid-template-columns:repeat(11,1fr); border-radius:10px; overflow:hidden; }
+  .step { min-height:64px; padding:8px 6px; display:flex; flex-direction:column; justify-content:space-between;
+    font-size:11px; }
+  .step b { font-size:12px; }
+  .step .mono { font-size:10px; }
+  .step.anchor { outline:3px solid var(--ink); outline-offset:-3px; }
+  .modes { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .mode { border:1px solid; border-radius:16px; padding:20px; break-inside:avoid; }
+  .mode-head { font-size:12px; letter-spacing:.12em; text-transform:uppercase; opacity:.7; margin-bottom:12px; }
+  .card { border:1px solid; border-radius:12px; padding:18px; }
+  .card h4 { margin:0 0 6px; font-size:18px; }
+  .card p { margin:0 0 14px; }
+  .card a { text-decoration:underline; }
+  .btns { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .btn { padding:9px 16px; border-radius:9px; font-weight:600; font-size:13px; border:1px solid transparent; }
+  .btn.ghost { background:transparent; }
+  .alt { border-radius:9px; padding:10px; display:flex; gap:8px; flex-wrap:wrap; }
+  .badge { border:1.5px solid; border-radius:999px; padding:2px 10px; font-size:12px; font-weight:600; }
+  .pairs { width:100%; border-collapse:collapse; margin-top:14px; font-size:12px; }
+  .pairs td { padding:4px 0; border-top:1px solid rgba(127,127,127,.25); }
+  .pairs td:nth-child(2) { text-align:right; padding-right:12px; }
+  .pairs td:last-child { text-align:right; width:70px; }
+  .ok { opacity:.75; }
+  .bad { color:#c4001a; font-weight:700; background:#fff; border-radius:4px; }
+  @media (max-width:760px) { main { padding:28px 16px; } .modes { grid-template-columns:1fr; }
+    .scale { grid-template-columns:1fr; } .step .mono { display:none; } header { flex-direction:column;
+    align-items:flex-start; } }
+  @media print { main { padding:0; } body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
+</style></head>
+<body><main>
+<header><div><h1>Kept</h1><p>the brand&#x27;s existing colours</p></div><p class=audit>Audit: <b>pass</b> · 0 blocking · 5 warnings · 4 notes</p></header>
+<h2>Brand colours</h2>
+<section class="brands">
+<figure class="brand">
+  <div class="chip" style="background:#ffffff;color:#111111"><span>Accent</span>
+    <em>locked</em></div>
+  <figcaption><b class=mono>#ffffff</b><span class=mono>rgb(255 255 255)</span><span class=mono>oklch(100.0% 0.000 0.0)</span>
+    <span class=mono>Lab D50 100.0 / 0.0 / 0.0</span>
+    <span>on white 1.00:1 · on black 21.00:1</span><span class=muted></span>
+  </figcaption>
+</figure>
+<figure class="brand">
+  <div class="chip" style="background:#f6be96;color:#111111"><span>Ground</span>
+    <em>locked</em></div>
+  <figcaption><b class=mono>#f6be96</b><span class=mono>rgb(246 190 150)</span><span class=mono>oklch(84.3% 0.084 56.8)</span>
+    <span class=mono>Lab D50 81.4 / 17.0 / 28.4</span>
+    <span>on white 1.65:1 · on black 12.72:1</span><span class=muted></span>
+  </figcaption>
+</figure>
+<figure class="brand">
+  <div class="chip" style="background:#fffcf8;color:#111111"><span>Primary</span>
+    <em>locked</em></div>
+  <figcaption><b class=mono>#fffcf8</b><span class=mono>rgb(255 252 248)</span><span class=mono>oklch(99.2% 0.006 75.4)</span>
+    <span class=mono>Lab D50 99.1 / 0.5 / 2.3</span>
+    <span>on white 1.02:1 · on black 20.53:1</span><span class=muted></span>
+  </figcaption>
+</figure></section>
+<h2>Extended colours</h2>
+<section class="brands">
+<figure class="brand">
+  <div class="ext-chip"><div class='ext-half' style='background:#fdebdd;color:#0f0f0f'><span>light</span><b class=mono>#fdebdd</b><span class=mono>Aa 16.53:1</span></div><div class='ext-half' style='background:#fdebdd;color:#0f0f0f'><span>dark</span><b class=mono>#fdebdd</b><span class=mono>Aa 16.53:1</span></div></div>
+  <figcaption><b>ext-1 · Extra 1</b><span class=mono>rgb(253 235 221)</span>
+    <span class=mono>oklch(95.1% 0.027 60.4)</span><span class=muted></span></figcaption>
+</figure>
+<figure class="brand">
+  <div class="ext-chip"><div class='ext-half' style='background:#292725;color:#ffffff'><span>light</span><b class=mono>#292725</b><span class=mono>Aa 14.88:1</span></div><div class='ext-half' style='background:#7f7c7a;color:#0f0f0f'><span>dark</span><b class=mono>#7f7c7a</b><span class=mono>Aa 4.62:1</span></div></div>
+  <figcaption><b>ext-2 · Extra 2</b><span class=mono>rgb(41 39 37)</span>
+    <span class=mono>oklch(27.4% 0.005 67.6)</span><span class=muted></span></figcaption>
+</figure>
+<figure class="brand">
+  <div class="ext-chip"><div class='ext-half' style='background:#71675f;color:#ffffff'><span>light</span><b class=mono>#71675f</b><span class=mono>Aa 5.52:1</span></div><div class='ext-half' style='background:#71675f;color:#ffffff'><span>dark</span><b class=mono>#71675f</b><span class=mono>Aa 5.52:1</span></div></div>
+  <figcaption><b>ext-3 · Extra 2</b><span class=mono>rgb(113 103 95)</span>
+    <span class=mono>oklch(52.1% 0.018 61.1)</span><span class=muted></span></figcaption>
+</figure></section>
+<h2>Scales</h2>
+<section><div class=scale><div class=scale-name>primary<small>anchor 50</small></div><div class=steps><div class='step anchor' style='background:#ffffff;color:#111111'><b>50</b><span class=mono>#ffffff</span></div><div class='step' style='background:#f6f6f6;color:#111111'><b>100</b><span class=mono>#f6f6f6</span></div><div class='step' style='background:#e5e5e5;color:#111111'><b>200</b><span class=mono>#e5e5e5</span></div><div class='step' style='background:#cecece;color:#111111'><b>300</b><span class=mono>#cecece</span></div><div class='step' style='background:#b1b1b1;color:#111111'><b>400</b><span class=mono>#b1b1b1</span></div><div class='step' style='background:#9e9e9e;color:#111111'><b>500</b><span class=mono>#9e9e9e</span></div><div class='step' style='background:#818181;color:#111111'><b>600</b><span class=mono>#818181</span></div><div class='step' style='background:#696969;color:#ffffff'><b>700</b><span class=mono>#696969</span></div><div class='step' style='background:#565656;color:#ffffff'><b>800</b><span class=mono>#565656</span></div><div class='step' style='background:#484848;color:#ffffff'><b>900</b><span class=mono>#484848</span></div><div class='step' style='background:#292929;color:#ffffff'><b>950</b><span class=mono>#292929</span></div></div></div><div class=scale><div class=scale-name>neutral<small>tinted toward none</small></div><div class=steps><div class='step' style='background:#fafafa;color:#111111'><b>50</b><span class=mono>#fafafa</span></div><div class='step' style='background:#f3f3f3;color:#111111'><b>100</b><span class=mono>#f3f3f3</span></div><div class='step' style='background:#e6e6e6;color:#111111'><b>200</b><span class=mono>#e6e6e6</span></div><div class='step' style='background:#d4d4d4;color:#111111'><b>300</b><span class=mono>#d4d4d4</span></div><div class='step' style='background:#a1a1a1;color:#111111'><b>400</b><span class=mono>#a1a1a1</span></div><div class='step' style='background:#737373;color:#ffffff'><b>500</b><span class=mono>#737373</span></div><div class='step' style='background:#555555;color:#ffffff'><b>600</b><span class=mono>#555555</span></div><div class='step' style='background:#414141;color:#ffffff'><b>700</b><span class=mono>#414141</span></div><div class='step' style='background:#2b2b2b;color:#ffffff'><b>800</b><span class=mono>#2b2b2b</span></div><div class='step' style='background:#1c1c1c;color:#ffffff'><b>900</b><span class=mono>#1c1c1c</span></div><div class='step' style='background:#0f0f0f;color:#ffffff'><b>950</b><span class=mono>#0f0f0f</span></div></div></div><div class=scale><div class=scale-name>accent<small>anchor 300</small></div><div class=steps><div class='step' style='background:#fef6ef;color:#111111'><b>50</b><span class=mono>#fef6ef</span></div><div class='step' style='background:#ffebde;color:#111111'><b>100</b><span class=mono>#ffebde</span></div><div class='step' style='background:#fed8bd;color:#111111'><b>200</b><span class=mono>#fed8bd</span></div><div class='step anchor' style='background:#f6be96;color:#111111'><b>300</b><span class=mono>#f6be96</span></div><div class='step' style='background:#dea072;color:#111111'><b>400</b><span class=mono>#dea072</span></div><div class='step' style='background:#c98c5f;color:#111111'><b>500</b><span class=mono>#c98c5f</span></div><div class='step' style='background:#ab7043;color:#111111'><b>600</b><span class=mono>#ab7043</span></div><div class='step' style='background:#8c5c37;color:#ffffff'><b>700</b><span class=mono>#8c5c37</span></div><div class='step' style='background:#714c30;color:#ffffff'><b>800</b><span class=mono>#714c30</span></div><div class='step' style='background:#5d402a;color:#ffffff'><b>900</b><span class=mono>#5d402a</span></div><div class='step' style='background:#352418;color:#ffffff'><b>950</b><span class=mono>#352418</span></div></div></div><div class=scale><div class=scale-name>success<small></small></div><div class=steps><div class='step' style='background:#ecfcf5;color:#111111'><b>50</b><span class=mono>#ecfcf5</span></div><div class='step' style='background:#d6f8eb;color:#111111'><b>100</b><span class=mono>#d6f8eb</span></div><div class='step' style='background:#98f4d5;color:#111111'><b>200</b><span class=mono>#98f4d5</span></div><div class='step' style='background:#66e2bc;color:#111111'><b>300</b><span class=mono>#66e2bc</span></div><div class='step' style='background:#3fc6a0;color:#111111'><b>400</b><span class=mono>#3fc6a0</span></div><div class='step' style='background:#2bb28e;color:#111111'><b>500</b><span class=mono>#2bb28e</span></div><div class='step' style='background:#0d9373;color:#111111'><b>600</b><span class=mono>#0d9373</span></div><div class='step' style='background:#08795e;color:#ffffff'><b>700</b><span class=mono>#08795e</span></div><div class='step' style='background:#06644d;color:#ffffff'><b>800</b><span class=mono>#06644d</span></div><div class='step' style='background:#045440;color:#ffffff'><b>900</b><span class=mono>#045440</span></div><div class='step' style='background:#073025;color:#ffffff'><b>950</b><span class=mono>#073025</span></div></div></div><div class=scale><div class=scale-name>warning<small></small></div><div class=steps><div class='step' style='background:#fbf8e5;color:#111111'><b>50</b><span class=mono>#fbf8e5</span></div><div class='step' style='background:#f8f0c6;color:#111111'><b>100</b><span class=mono>#f8f0c6</span></div><div class='step' style='background:#f3e081;color:#111111'><b>200</b><span class=mono>#f3e081</span></div><div class='step' style='background:#e1c85c;color:#111111'><b>300</b><span class=mono>#e1c85c</span></div><div class='step' style='background:#c9aa37;color:#111111'><b>400</b><span class=mono>#c9aa37</span></div><div class='step' style='background:#b69625;color:#111111'><b>500</b><span class=mono>#b69625</span></div><div class='step' style='background:#9f760a;color:#111111'><b>600</b><span class=mono>#9f760a</span></div><div class='step' style='background:#895d06;color:#ffffff'><b>700</b><span class=mono>#895d06</span></div><div class='step' style='background:#754a06;color:#ffffff'><b>800</b><span class=mono>#754a06</span></div><div class='step' style='background:#643c0b;color:#ffffff'><b>900</b><span class=mono>#643c0b</span></div><div class='step' style='background:#3c210e;color:#ffffff'><b>950</b><span class=mono>#3c210e</span></div></div></div><div class=scale><div class=scale-name>danger<small></small></div><div class=steps><div class='step' style='background:#fff5f3;color:#111111'><b>50</b><span class=mono>#fff5f3</span></div><div class='step' style='background:#ffe9e6;color:#111111'><b>100</b><span class=mono>#ffe9e6</span></div><div class='step' style='background:#fed3cd;color:#111111'><b>200</b><span class=mono>#fed3cd</span></div><div class='step' style='background:#feb2a8;color:#111111'><b>300</b><span class=mono>#feb2a8</span></div><div class='step' style='background:#fe8477;color:#111111'><b>400</b><span class=mono>#fe8477</span></div><div class='step' style='background:#f86156;color:#111111'><b>500</b><span class=mono>#f86156</span></div><div class='step' style='background:#e0312e;color:#ffffff'><b>600</b><span class=mono>#e0312e</span></div><div class='step' style='background:#b4312b;color:#ffffff'><b>700</b><span class=mono>#b4312b</span></div><div class='step' style='background:#922c27;color:#ffffff'><b>800</b><span class=mono>#922c27</span></div><div class='step' style='background:#7a2520;color:#ffffff'><b>900</b><span class=mono>#7a2520</span></div><div class='step' style='background:#471713;color:#ffffff'><b>950</b><span class=mono>#471713</span></div></div></div><div class=scale><div class=scale-name>info<small></small></div><div class=steps><div class='step' style='background:#f2f8ff;color:#111111'><b>50</b><span class=mono>#f2f8ff</span></div><div class='step' style='background:#e3f0ff;color:#111111'><b>100</b><span class=mono>#e3f0ff</span></div><div class='step' style='background:#c7e2fe;color:#111111'><b>200</b><span class=mono>#c7e2fe</span></div><div class='step' style='background:#9ecdfe;color:#111111'><b>300</b><span class=mono>#9ecdfe</span></div><div class='step' style='background:#66b2fd;color:#111111'><b>400</b><span class=mono>#66b2fd</span></div><div class='step' style='background:#3e9ef7;color:#111111'><b>500</b><span class=mono>#3e9ef7</span></div><div class='step' style='background:#2681d2;color:#111111'><b>600</b><span class=mono>#2681d2</span></div><div class='step' style='background:#196aaf;color:#ffffff'><b>700</b><span class=mono>#196aaf</span></div><div class='step' style='background:#125792;color:#ffffff'><b>800</b><span class=mono>#125792</span></div><div class='step' style='background:#0f487a;color:#ffffff'><b>900</b><span class=mono>#0f487a</span></div><div class='step' style='background:#0c2a46;color:#ffffff'><b>950</b><span class=mono>#0c2a46</span></div></div></div><div class=scale><div class=scale-name>ext-1<small>anchor 100</small></div><div class=steps><div class='step' style='background:#fbf6f3;color:#111111'><b>50</b><span class=mono>#fbf6f3</span></div><div class='step anchor' style='background:#fdebdd;color:#111111'><b>100</b><span class=mono>#fdebdd</span></div><div class='step' style='background:#efdaca;color:#111111'><b>200</b><span class=mono>#efdaca</span></div><div class='step' style='background:#d8c4b4;color:#111111'><b>300</b><span class=mono>#d8c4b4</span></div><div class='step' style='background:#bca999;color:#111111'><b>400</b><span class=mono>#bca999</span></div><div class='step' style='background:#a99687;color:#111111'><b>500</b><span class=mono>#a99687</span></div><div class='step' style='background:#8c7a6b;color:#111111'><b>600</b><span class=mono>#8c7a6b</span></div><div class='step' style='background:#756355;color:#ffffff'><b>700</b><span class=mono>#756355</span></div><div class='step' style='background:#625143;color:#ffffff'><b>800</b><span class=mono>#625143</span></div><div class='step' style='background:#534336;color:#ffffff'><b>900</b><span class=mono>#534336</span></div><div class='step' style='background:#342519;color:#ffffff'><b>950</b><span class=mono>#342519</span></div></div></div><div class=scale><div class=scale-name>ext-2<small>anchor 950</small></div><div class=steps><div class='step' style='background:#f8f7f7;color:#111111'><b>50</b><span class=mono>#f8f7f7</span></div><div class='step' style='background:#efeeee;color:#111111'><b>100</b><span class=mono>#efeeee</span></div><div class='step' style='background:#e0dedc;color:#111111'><b>200</b><span class=mono>#e0dedc</span></div><div class='step' style='background:#cac7c4;color:#111111'><b>300</b><span class=mono>#cac7c4</span></div><div class='step' style='background:#aeaca9;color:#111111'><b>400</b><span class=mono>#aeaca9</span></div><div class='step' style='background:#9b9996;color:#111111'><b>500</b><span class=mono>#9b9996</span></div><div class='step' style='background:#7f7c7a;color:#111111'><b>600</b><span class=mono>#7f7c7a</span></div><div class='step' style='background:#686663;color:#ffffff'><b>700</b><span class=mono>#686663</span></div><div class='step' style='background:#565351;color:#ffffff'><b>800</b><span class=mono>#565351</span></div><div class='step' style='background:#484542;color:#ffffff'><b>900</b><span class=mono>#484542</span></div><div class='step anchor' style='background:#292725;color:#ffffff'><b>950</b><span class=mono>#292725</span></div></div></div><div class=scale><div class=scale-name>ext-3<small>anchor 700</small></div><div class=steps><div class='step' style='background:#f9f7f6;color:#111111'><b>50</b><span class=mono>#f9f7f6</span></div><div class='step' style='background:#f1eeec;color:#111111'><b>100</b><span class=mono>#f1eeec</span></div><div class='step' style='background:#e2dedb;color:#111111'><b>200</b><span class=mono>#e2dedb</span></div><div class='step' style='background:#cfc7c1;color:#111111'><b>300</b><span class=mono>#cfc7c1</span></div><div class='step' style='background:#b8aba1;color:#111111'><b>400</b><span class=mono>#b8aba1</span></div><div class='step' style='background:#a5998f;color:#111111'><b>500</b><span class=mono>#a5998f</span></div><div class='step' style='background:#897d74;color:#111111'><b>600</b><span class=mono>#897d74</span></div><div class='step anchor' style='background:#71675f;color:#ffffff'><b>700</b><span class=mono>#71675f</span></div><div class='step' style='background:#5d544d;color:#ffffff'><b>800</b><span class=mono>#5d544d</span></div><div class='step' style='background:#4d4640;color:#ffffff'><b>900</b><span class=mono>#4d4640</span></div><div class='step' style='background:#2b2825;color:#ffffff'><b>950</b><span class=mono>#2b2825</span></div></div></div></section>
+<h2>Roles in use</h2>
+<section class="modes">
+<div class="mode" style="background:#fffcf8;color:#1c1c1c;border-color:#e0dbd3">
+  <div class="mode-head"><span>light</span></div>
+  <div class="card" style="background:#ffffff;border-color:#e0dbd3">
+    <h4 style="color:#1c1c1c">Heading on surface</h4>
+    <p style="color:#555555">Muted supporting copy with a <a style="color:#8c5c37">text link</a>.</p>
+    <div class="btns">
+      <span class="btn" style="background:#f6be96;color:#0f0f0f">Primary</span>
+      <span class="btn" style="background:#f6be96;color:#0f0f0f">Accent</span>
+      <span class="btn ghost" style="color:#1c1c1c;border-color:#e0dbd3;
+        box-shadow:0 0 0 2px #fffcf8,0 0 0 4px #ab7043">Focused</span>
+    </div>
+    <div class="alt" style="background:#f5f2ee"><span class=badge style='color:#08795e;border-color:#08795e'>Success</span><span class=badge style='color:#895d06;border-color:#895d06'>Warning</span><span class=badge style='color:#b4312b;border-color:#b4312b'>Danger</span><span class=badge style='color:#196aaf;border-color:#196aaf'>Info</span></div>
+  </div>
+  <table class="pairs" style="color:#1c1c1c"><tr><td>Ink / Ground</td><td class=mono>16.66:1</td><td class='ok'>pass 4.5</td></tr><tr><td>Muted ink / Ground</td><td class=mono>7.29:1</td><td class='ok'>pass 4.5</td></tr><tr><td>Ink / Surface</td><td class=mono>17.04:1</td><td class='ok'>pass 4.5</td></tr><tr><td>On primary / Primary</td><td class=mono>11.61:1</td><td class='ok'>pass 4.5</td></tr><tr><td>On accent / Accent</td><td class=mono>11.61:1</td><td class='ok'>pass 4.5</td></tr><tr><td>Link / Ground</td><td class=mono>5.55:1</td><td class='ok'>pass 4.5</td></tr><tr><td>Focus / Ground</td><td class=mono>4.00:1</td><td class='ok'>pass 3.0</td></tr><tr><td>Danger / Ground</td><td class=mono>6.01:1</td><td class='ok'>pass 3.0</td></tr><tr><td>Success / Ground</td><td class=mono>5.26:1</td><td class='ok'>pass 3.0</td></tr></table>
+</div>
+<div class="mode" style="background:#0f0f0f;color:#f3f3f3;border-color:#414141">
+  <div class="mode-head"><span>dark</span></div>
+  <div class="card" style="background:#1c1c1c;border-color:#414141">
+    <h4 style="color:#f3f3f3">Heading on surface</h4>
+    <p style="color:#a1a1a1">Muted supporting copy with a <a style="color:#f6be96">text link</a>.</p>
+    <div class="btns">
+      <span class="btn" style="background:#f6be96;color:#0f0f0f">Primary</span>
+      <span class="btn" style="background:#f6be96;color:#0f0f0f">Accent</span>
+      <span class="btn ghost" style="color:#f3f3f3;border-color:#414141;
+        box-shadow:0 0 0 2px #0f0f0f,0 0 0 4px #f6be96">Focused</span>
+    </div>
+    <div class="alt" style="background:#2b2b2b"><span class=badge style='color:#3fc6a0;border-color:#3fc6a0'>Success</span><span class=badge style='color:#c9aa37;border-color:#c9aa37'>Warning</span><span class=badge style='color:#fe8477;border-color:#fe8477'>Danger</span><span class=badge style='color:#66b2fd;border-color:#66b2fd'>Info</span></div>
+  </div>
+  <table class="pairs" style="color:#f3f3f3"><tr><td>Ink / Ground</td><td class=mono>17.27:1</td><td class='ok'>pass 4.5</td></tr><tr><td>Muted ink / Ground</td><td class=mono>7.42:1</td><td class='ok'>pass 4.5</td></tr><tr><td>Ink / Surface</td><td class=mono>15.36:1</td><td class='ok'>pass 4.5</td></tr><tr><td>On primary / Primary</td><td class=mono>11.61:1</td><td class='ok'>pass 4.5</td></tr><tr><td>On accent / Accent</td><td class=mono>11.61:1</td><td class='ok'>pass 4.5</td></tr><tr><td>Link / Ground</td><td class=mono>11.61:1</td><td class='ok'>pass 4.5</td></tr><tr><td>Focus / Ground</td><td class=mono>11.61:1</td><td class='ok'>pass 3.0</td></tr><tr><td>Danger / Ground</td><td class=mono>8.02:1</td><td class='ok'>pass 3.0</td></tr><tr><td>Success / Ground</td><td class=mono>8.94:1</td><td class='ok'>pass 3.0</td></tr></table>
+</div></section>
+<p class="muted" style="margin-top:32px;font-size:12px">Contrast: WCAG 2.x ratios, unrounded. Lab D50 values are computed from sRGB for print hand-off; CMYK needs the printer&#x27;s ICC profile and Pantone matches need a physical guide. Generated by brand-identity from palette.json. Edit the palette, not this file.</p>
+</main></body></html>

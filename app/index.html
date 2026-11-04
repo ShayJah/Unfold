@@ -1,0 +1,580 @@
+<meta charset="utf-8">
+<title>Unfold</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wdth,wght@100,400;100,500;100,600&display=swap">
+<style>
+/* Layout: one 720px column on paper with a faint apricot undertone. Three screens share it: upload → unfolding loader → quiz. */
+:root{
+  --paper:#FFFCF8; --card:#FFFFFF; --apricot:#F6BE96; --tint:#FDEBDD; --ink:#292725; --muted:#71675F; --line:#ECE2D7;
+  --on-apricot:#292725; --ok:#3E7B55; --ok-soft:#E4F0E7; --bad:#B5473B; --bad-soft:#F9E4DF;
+  --wash:rgba(253,235,221,.75);
+  --f-display:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --f-text:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#1B1816; --card:#24201D; --apricot:#F6BE96; --tint:#3A2B21; --ink:#F2ECE5; --muted:#B4A89D; --line:#38312B;
+  --on-apricot:#292725; --ok:#7FC598; --ok-soft:#1E3226; --bad:#F09281; --bad-soft:#3C2420; --wash:rgba(246,190,150,.07); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#1B1816; --card:#24201D; --apricot:#F6BE96; --tint:#3A2B21; --ink:#F2ECE5; --muted:#B4A89D; --line:#38312B;
+  --on-apricot:#292725; --ok:#7FC598; --ok-soft:#1E3226; --bad:#F09281; --bad-soft:#3C2420; --wash:rgba(246,190,150,.07); color-scheme:dark}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{background:radial-gradient(900px 520px at 105% -8%,var(--wash),transparent 62%),radial-gradient(700px 420px at -10% 108%,var(--wash),transparent 60%),var(--paper);background-attachment:fixed;color:var(--ink);font:16px/1.6 var(--f-text);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;min-height:100vh}
+.wrap{max-width:720px;margin:0 auto;padding-block:28px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;letter-spacing:-.01em;line-height:1.08;margin:0;text-wrap:balance}
+p{margin:0}
+.muted{color:var(--muted)}
+.brand{display:flex;align-items:center;gap:10px;font:400 26px/1 var(--f-display);letter-spacing:-.01em}
+.brand svg{width:26px;height:26px}
+.pa{fill:var(--ink)} .pb{fill:var(--muted)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:40px;min-height:36px}
+.screen{display:grid;gap:20px}
+.hero{display:grid;gap:12px;margin-bottom:6px}
+.hero h1{font-size:clamp(40px,8vw,60px)}
+.hero h1 em{font-style:italic}
+.lede{color:var(--muted);font-size:17px;max-width:56ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:grid;gap:14px;min-width:0}
+.label{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;cursor:pointer;font-size:15px}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.drop{border:1.5px dashed color-mix(in srgb,var(--muted) 55%,transparent);border-radius:var(--r);background:color-mix(in srgb,var(--tint) 45%,var(--card));padding:34px 18px;display:grid;justify-items:center;gap:6px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s}
+.drop:hover,.drop:focus-visible,.drop.over{background:var(--tint);border-color:var(--ink);outline:none}
+.drop svg{width:44px;height:44px;margin-bottom:4px}
+.drop b{font:400 24px var(--f-display)}
+.drop span{color:var(--muted);font-size:14.5px}
+.files{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.files li{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:color-mix(in srgb,var(--tint) 40%,var(--card));font-size:15px;min-width:0}
+.files .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.files .sz{color:var(--muted);font-size:13px;white-space:nowrap}
+.x{border:0;background:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:6px}
+.x:hover{color:var(--bad)}
+details.more summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none;display:flex;gap:8px;align-items:center}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::before{content:"+";display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--line);font-weight:400}
+details.more[open] summary::before{content:"–"}
+details.more > div{margin-top:10px;display:grid;gap:6px}
+textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:10px 12px;resize:vertical;min-height:96px;font-size:15px;line-height:1.5}
+textarea:focus{outline:2px solid var(--ink);outline-offset:1px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--apricot);background:var(--apricot);color:var(--on-apricot);border-radius:10px;padding:12px 20px;font-weight:600;font-size:16px;cursor:pointer;transition:filter .15s,transform .1s}
+.btn:hover:not(:disabled){filter:brightness(1.04)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.btn.ghost:hover:not(:disabled){background:var(--tint);filter:none}
+.btn.small{padding:7px 12px;font-size:14px;border-radius:8px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.fine{font-size:13.5px;color:var(--muted)}
+.note{font-size:14.5px;padding:10px 12px;border-radius:10px;background:var(--tint)}
+.note.bad{background:var(--bad-soft);color:var(--ink)}
+
+/* loader */
+.loader{display:grid;justify-items:center;gap:14px;text-align:center;padding-block:28px 8px}
+.loader svg{width:92px;height:92px;overflow:visible}
+.loader polygon{transform-box:fill-box;transform-origin:50% 0;animation:unfold 2.4s cubic-bezier(.6,.05,.3,1) infinite}
+.loader polygon:nth-child(2){animation-delay:.18s} .loader polygon:nth-child(3){animation-delay:.36s} .loader polygon:nth-child(4){animation-delay:.54s}
+@keyframes unfold{0%{transform:scaleY(0);opacity:0}22%{transform:scaleY(1);opacity:1}78%{transform:scaleY(1);opacity:1}100%{transform:scaleY(0);opacity:0}}
+.loader h2{font-size:clamp(30px,6vw,40px)}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.steps li{display:grid;grid-template-columns:24px 1fr auto;gap:12px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line)}
+.steps li:last-child{border-bottom:0}
+.steps .dot{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:12px}
+.steps li.now .dot{border-color:var(--ink);border-top-color:transparent;animation:spin .8s linear infinite}
+.steps li.done .dot{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.steps li.fail .dot{background:var(--bad);border-color:var(--bad);color:var(--paper)}
+.steps .t{font-weight:500}
+.steps li:not(.now):not(.done):not(.fail) .t{color:var(--muted)}
+.steps .d{font-size:13.5px;color:var(--muted);text-align:right}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink);transition:width .3s}
+.save-big{font:400 30px/1.1 var(--f-display)}
+.save-big mark{background:var(--apricot);color:var(--on-apricot);padding:0 6px;border-radius:6px}
+.topics{display:grid;gap:8px}
+.tp{display:grid;grid-template-columns:22px 1fr;gap:4px 12px;align-items:start;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer}
+.tp .box{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--muted);display:grid;place-items:center;font-size:12px;margin-top:2px}
+.tp[aria-pressed="true"] .box{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.tp[aria-pressed="false"]{opacity:.55}
+.tp .n{font-weight:600}
+.tp .w{grid-column:2;font-size:14px;color:var(--muted)}
+
+/* quiz */
+.qtop{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.qtop b{color:var(--ink);font-weight:600}
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;display:grid;gap:16px;min-width:0}
+.meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--tint);color:var(--ink)}
+.chip.o{background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:500}
+.lvl{display:inline-flex;gap:3px;align-items:center;margin-left:4px}
+.lvl i{width:6px;height:6px;border-radius:50%;background:var(--line)} .lvl i.on{background:var(--ink)}
+.qtext{font-size:19px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.qtext code,.fb code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.88em;background:var(--tint);border-radius:4px;padding:.05em .35em}
+.qtext pre,.fb pre{font:13.5px/1.5 ui-monospace,"SF Mono",Menlo,monospace;background:var(--tint);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:pre;margin:4px 0}
+.opts{display:grid;gap:8px}
+.opt{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer;line-height:1.45;transition:border-color .12s,background .12s}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .k{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--muted)}
+.opt.sel{border-color:var(--ink);background:var(--tint)} .opt.sel .k{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)} .opt.right .k{background:var(--ok);border-color:var(--ok);color:var(--paper)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)} .opt.wrong .k{background:var(--bad);border-color:var(--bad);color:var(--paper)}
+.opt.missed{border-style:dashed;border-color:var(--ok)}
+.opt:disabled{cursor:default}
+.numrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.numrow input{width:min(260px,100%);border:1px solid var(--line);border-radius:10px;padding:11px 14px;background:var(--paper);font-size:18px}
+.numrow input:focus{outline:2px solid var(--ink);outline-offset:1px}
+.numrow input.right{border-color:var(--ok);background:var(--ok-soft)} .numrow input.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.olist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.oi{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.oi .p{font-weight:600;color:var(--muted);font-size:14px}
+.oi.right{border-color:var(--ok);background:var(--ok-soft)} .oi.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.mv{display:flex;gap:4px} .mv button{border:1px solid var(--line);background:var(--paper);border-radius:6px;width:30px;height:30px;cursor:pointer}
+.mv button:disabled{opacity:.35;cursor:default}
+.fb{border-radius:12px;padding:16px 18px;display:grid;gap:10px;font-size:15.5px;line-height:1.55;overflow-wrap:anywhere}
+.fb.ok{background:var(--ok-soft)} .fb.part{background:var(--tint)} .fb.bad{background:var(--bad-soft)}
+.fb .v{font:400 24px/1.1 var(--f-display)}
+.fb .h{font-weight:600;font-size:13px;color:var(--muted);letter-spacing:.02em;margin-bottom:-6px}
+.fb .src{font-size:13px;color:var(--muted)}
+.thinking{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:15px}
+.thinking svg{width:28px;height:28px}
+.mastery{display:grid;gap:10px}
+.mt{display:grid;grid-template-columns:minmax(0,1fr) 120px 52px;gap:12px;align-items:center;font-size:14.5px}
+.mt .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mt.focus .nm{font-weight:600}
+.mt .pc{text-align:right;color:var(--muted);font-size:13px}
+.mt .bar i{background:var(--muted)} .mt.focus .bar i{background:var(--ink)}
+.hi .bar i{background:var(--ok)!important}
+.score{font:400 clamp(46px,10vw,72px)/1 var(--f-display)}
+@media (max-width:520px){.qcard{padding:18px}.mt{grid-template-columns:minmax(0,1fr) 80px 44px}.steps .d{grid-column:2;text-align:left}.steps li{grid-template-columns:24px 1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script>
+(() => {
+/* ================= helpers ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// light formatting for Claude's text: ```code blocks```, `inline code`, line breaks
+const fmt = s => esc(s).replace(/```(?:\w+)?\n?([\s\S]*?)```/g, (_, c) => `<pre>${c.replace(/\n$/, '')}</pre>`).replace(/`([^`\n]+)`/g, '<code>$1</code>');
+const kfmt = n => n >= 10000 ? Math.round(n / 1000) + 'k' : n.toLocaleString();
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const PLEAT = cls => `<svg viewBox="0 0 100 100" aria-hidden="true" class="${cls || ''}"><polygon class="pa" points="24,8 14,30 76,30 86,8"/><polygon class="pb" points="14,30 24,52 86,52 76,30"/><polygon class="pa" points="24,52 14,74 76,74 86,52"/><polygon class="pb" points="14,74 24,96 86,96 76,74"/></svg>`;
+const BRAND = `<div class="brand">${PLEAT()}<span>Unfold</span></div>`;
+const app = $('#app');
+const LIVE_URL = 'https://claude.ai/artifact/V6E7BXJvt7WjDbUuwAQxpN';
+
+/* ================= state ================= */
+const S = { subject: 'physics', topicsText: '', files: [], pages: [], docs: [], topics: [], screen: 'upload', parse: null, quiz: null };
+const SUBJECTS = { physics: 'Physics', dsa: 'Data Structures & Algorithms', other: 'Something else' };
+const HINTS = {
+  physics: 'Prefer "num" questions with realistic values and SI units, plus concept "mc" questions on directions, signs and which equation applies. Work every number out step by step and double-check it before you write "ans". Use g = 9.8 m/s² unless the notes say otherwise. Set "tol" to 0.02.',
+  dsa: 'Prefer tracing questions (the state of a stack, queue, heap, tree or array after given operations, as "short" or "order"), Big-O "mc" questions, algorithm-step "order" questions and short code-reading questions in the language the notes use. Keep code under 12 lines.',
+  other: 'Mix definitions, applying a rule to a new case, and short explanations.'
+};
+
+/* ================= Claude (sample) ================= */
+let samplerP = null;
+const sampler = () => samplerP || (samplerP = window.claude && claude.use ? claude.use('sample').catch(() => null) : Promise.resolve(null));
+const ERR = {
+  not_granted: 'Unfold needs permission to use Claude for questions and marking. Reload and choose Allow.',
+  sampling_disabled: 'Claude isn’t available on this account, so Unfold can’t write questions.',
+  rate_limited: 'Claude is busy or you’ve hit a usage limit. Wait a minute, then try again.',
+  session_expired: 'Your Claude session expired. Sign in again, then reload.',
+  prompt_too_large: 'That’s too much text for one go. Try fewer PDFs.',
+  invalid_json: 'Claude’s answer came back garbled. Try again.',
+  refused: 'Claude wouldn’t answer that one. Try again.',
+  offline: 'Your notes are ready. Questions and marking run inside claude.ai: save the notes file, or open the live version.'
+};
+const errText = e => ERR[e && e.code] || 'Something went wrong talking to Claude. Try again.';
+async function ask(prompt, opts) {
+  const s = await sampler(); if (!s) throw { code: 'offline' };
+  return s.json(prompt, opts);
+}
+
+/* ================= PDF reading (same rules as scripts/extract_notes.py) ================= */
+async function pageLines(page) {
+  const tc = await page.getTextContent(); const lines = []; let cur = '', y = null;
+  for (const it of tc.items) {
+    const iy = it.transform ? it.transform[5] : y;
+    if (y !== null && iy !== null && Math.abs(iy - y) > 2 && cur.trim()) { lines.push(cur); cur = ''; }
+    cur += it.str; y = iy;
+    if (it.hasEOL) { lines.push(cur); cur = ''; }
+  }
+  if (cur.trim()) lines.push(cur);
+  return lines.map(l => l.replace(/\s+/g, ' ').trim());
+}
+// drop slide build-up repeats, headers/footers on 40%+ of pages, page numbers
+function squeeze(pages) {
+  const seen = new Map();
+  pages.forEach(p => new Set(p).forEach(l => l && seen.set(l, (seen.get(l) || 0) + 1)));
+  const boiler = new Set(pages.length >= 5 ? [...seen].filter(([, n]) => n >= 0.4 * pages.length).map(([l]) => l) : []);
+  let prev = new Set();
+  return pages.map(lines => { const keep = lines.filter(l => l && !prev.has(l) && !boiler.has(l) && !/^\d{1,3}(\s*\/\s*\d{1,3})?$/.test(l)); prev = new Set(lines); return keep.join('\n'); });
+}
+const PDF_TOKENS_PER_PAGE = 1500; // rough cost of one PDF page sent to Claude as a document
+
+/* ================= screens ================= */
+function go(screen) { S.screen = screen; render(); window.scrollTo(0, 0); }
+function render() { ({ upload: renderUpload, parse: renderParse, quiz: renderQuiz, done: renderDone })[S.screen](); }
+
+function renderUpload() {
+  const n = S.files.length;
+  app.innerHTML = `
+  <div class="top">${BRAND}</div>
+  <section class="screen">
+    <header class="hero"><h1>Turn course notes into <em>clarity.</em></h1>
+      <p class="lede">Drop in your lecture slides. Unfold reads them, quizzes you, marks every answer, and spends more time where you slip.</p></header>
+    <div class="card">
+      <span class="label" id="subj-l">What’s the course?</span>
+      <div class="seg" role="group" aria-labelledby="subj-l">${Object.entries(SUBJECTS).map(([k, v]) => `<button data-subj="${k}" aria-pressed="${S.subject === k}">${v}</button>`).join('')}</div>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose lecture PDFs">
+        ${PLEAT()}<b>Drop your lecture PDFs</b><span>or click to choose. Add as many as you like.</span>
+        <input type="file" id="pick" accept="application/pdf,.pdf" multiple hidden>
+      </div>
+      ${n ? `<ul class="files">${S.files.map((f, i) => `<li><span class="nm">${esc(f.name)}</span><span class="sz">${(f.size / 1048576).toFixed(1)} MB</span><button class="x" data-rm="${i}" aria-label="Remove ${esc(f.name)}">×</button></li>`).join('')}</ul>` : ''}
+      <details class="more" ${S.topicsText ? 'open' : ''}><summary>Add the exam topic list <span class="fine" style="font-weight:400">(recommended)</span></summary>
+        <div><textarea id="topics-in" placeholder="Paste the topics your prof said are on the exam, one per line.">${esc(S.topicsText)}</textarea>
+        <p class="fine">Unfold only quizzes what’s on this list. Leave it empty to cover everything in the slides.</p></div></details>
+      <div class="spread"><p class="fine">PDFs are read in your browser. Only the pages being quizzed are sent to Claude.</p>
+        <button class="btn" id="start" ${n ? '' : 'disabled'}>Unfold my notes</button></div>
+    </div>
+  </section>`;
+  $$('[data-subj]').forEach(b => b.onclick = () => { S.subject = b.dataset.subj; render(); });
+  $$('[data-rm]').forEach(b => b.onclick = () => { S.files.splice(+b.dataset.rm, 1); render(); });
+  const ta = $('#topics-in'); ta.oninput = () => { S.topicsText = ta.value; };
+  const drop = $('#drop'), pick = $('#pick');
+  drop.onclick = () => pick.click();
+  drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick.click(); } };
+  pick.onchange = () => addFiles(pick.files);
+  ['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+  $('#start').onclick = startParse;
+}
+function addFiles(list) {
+  const pdfs = [...list].filter(f => /\.pdf$/i.test(f.name) || f.type === 'application/pdf');
+  const have = new Set(S.files.map(f => f.name + f.size));
+  pdfs.forEach(f => { if (!have.has(f.name + f.size)) S.files.push(f); });
+  render();
+}
+
+/* ---------- parse: read → squeeze → find topics → pick topics ---------- */
+async function startParse() {
+  S.parse = { step: 0, detail: ['', '', '', ''], fail: null, pagesDone: 0, pagesTotal: 0, before: 0, after: 0 };
+  S.pages = []; S.docs = []; S.topics = [];
+  go('parse');
+  try {
+    if (!window.pdfjsLib) throw { msg: 'The PDF reader didn’t load. Check your connection and reload.' };
+    // 1. read
+    const P = S.parse;
+    for (const [di, f] of S.files.entries()) {
+      let pdf;
+      try { pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise; }
+      catch (e) { S.docs.push({ name: f.name, skipped: true }); continue; }
+      const raw = []; P.pagesTotal += pdf.numPages;
+      for (let i = 1; i <= pdf.numPages; i++) {
+        raw.push(await pageLines(await pdf.getPage(i))); P.pagesDone++;
+        if (i % 2 === 1 || i === pdf.numPages) { P.detail[0] = `${f.name.replace(/\.pdf$/i, '')} · page ${i} of ${pdf.numPages}`; renderParse(); }
+      }
+      pdf.destroy();
+      const label = f.name.replace(/\.pdf$/i, '');
+      squeeze(raw).forEach((text, i) => S.pages.push({ ref: `D${di + 1}p${i + 1}`, doc: label, page: i + 1, text }));
+      S.docs.push({ name: f.name, pages: raw.length });
+    }
+    const usable = S.pages.filter(p => p.text.trim());
+    if (!usable.length) throw { msg: 'No text found in those PDFs. Scanned slides (photos of pages) can’t be read yet.' };
+    const skipped = S.docs.filter(d => d.skipped).length;
+    P.detail[0] = `${P.pagesTotal} pages from ${S.docs.length - skipped} PDF${S.docs.length - skipped === 1 ? '' : 's'}${skipped ? ` · ${skipped} couldn’t be read` : ''}`;
+    // 2. squeeze
+    P.step = 1; P.before = P.pagesTotal * PDF_TOKENS_PER_PAGE; P.after = Math.ceil(S.pages.reduce((s, p) => s + p.text.length, 0) / 4);
+    P.detail[1] = `${kfmt(P.before)}+ → ${kfmt(P.after)} tokens`; renderParse();
+    // 3. topics
+    P.step = 2; P.detail[2] = 'Claude is reading the slide titles'; renderParse();
+    const outline = usable.map(p => `[${p.ref}] ${p.text.replace(/\n/g, ' · ').slice(0, 160)}`).join('\n').slice(0, 150000);
+    const only = S.topicsText.trim();
+    const res = await ask(`You are organising a student's lecture slides into exam topics for a ${SUBJECTS[S.subject]} course.
+Each line below is one slide: [id] then its first lines of text.
+${only ? `The exam covers ONLY these topics. Use them as the topic names (merge or drop slides that don't fit; keep the student's order):\n${only}\n` : ''}
+Group the slides into 4 to 10 topics in study order. Skip title slides, course admin, history and anything not examinable.
+Reply with only a JSON array, no other text, like:
+[{"name": "Projectile motion", "why": "one short line on what you need to be able to do", "refs": ["D1p4", "D1p5"]}]
+
+Slides:
+${outline}`, { modelTier: 'default' });
+    const valid = new Set(S.pages.map(p => p.ref));
+    S.topics = (Array.isArray(res) ? res : []).filter(t => t && t.name).map((t, i) => ({ id: 't' + i, name: String(t.name).slice(0, 80), why: String(t.why || '').slice(0, 160),
+      refs: (Array.isArray(t.refs) ? t.refs : []).map(String).filter(r => valid.has(r)), on: true, m: null, n: 0, got: 0, level: 1, streak: 0 })).slice(0, 12);
+    if (!S.topics.length) throw { code: 'invalid_json' };
+    P.detail[2] = `${S.topics.length} topics`; P.step = 3; renderParse();
+  } catch (e) { S.parse.fail = e.msg || errText(e); renderParse(); }
+}
+function renderParse() {
+  if (S.screen !== 'parse') return;
+  const P = S.parse, names = ['Reading your PDFs', 'Squeezing out the repeats', 'Finding the topics'];
+  const state = i => P.fail && i === P.step ? 'fail' : i < P.step ? 'done' : i === P.step && i < 3 ? 'now' : '';
+  const pct = P.pagesTotal ? Math.round(100 * P.pagesDone / P.pagesTotal) : 0;
+  const ready = P.step === 3 && !P.fail;
+  app.innerHTML = `
+  <div class="top">${BRAND}<button class="btn ghost small" id="back">← Start over</button></div>
+  <section class="screen">
+    ${ready ? `<header class="hero"><h1>Here’s what’s in your notes.</h1><p class="lede">Untick anything that isn’t on the exam. Unfold starts where you’re weakest and moves on as you get things right.</p></header>`
+      : `<div class="loader">${PLEAT()}<h2>${P.fail ? 'That didn’t work.' : 'Unfolding your notes…'}</h2>${P.step === 0 && !P.fail ? `<div class="bar" style="width:min(320px,80%)" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Pages read"><i style="width:${pct}%"></i></div>` : ''}</div>`}
+    <div class="card">
+      <ol class="steps">${names.map((nm, i) => `<li class="${state(i)}"><span class="dot">${state(i) === 'done' ? '✓' : state(i) === 'fail' ? '!' : ''}</span><span class="t">${nm}</span><span class="d">${esc(P.detail[i])}</span></li>`).join('')}</ol>
+      ${P.step >= 2 && P.before ? `<div class="save-big">${kfmt(P.before)}+ tokens → <mark>${kfmt(P.after)}</mark></div><p class="fine">That’s what Claude reads instead of your PDFs, about ${Math.max(1, Math.round(P.before / Math.max(P.after, 1)))}× less.</p>` : ''}
+      ${P.fail ? `<p class="note bad">${esc(P.fail)}</p><div class="row">${P.step >= 2 ? '<button class="btn" id="retry">Try again</button>' : ''}<button class="btn ghost" id="save">Save the notes file</button>${window.claude ? '' : `<a class="btn" href="${LIVE_URL}" target="_blank" rel="noopener">Open in claude.ai</a>`}</div>` : ''}
+    </div>
+    ${ready ? `<div class="topics">${S.topics.map(t => `<button class="tp" data-t="${t.id}" aria-pressed="${t.on}"><span class="box">${t.on ? '✓' : ''}</span><span class="n">${esc(t.name)}</span>${t.why ? `<span class="w">${esc(t.why)}</span>` : ''}</button>`).join('')}</div>
+      <div class="spread"><button class="btn ghost" id="save">Save the notes file</button><button class="btn" id="go" ${S.topics.some(t => t.on) ? '' : 'disabled'}>Start practising</button></div>` : ''}
+  </section>`;
+  $('#back').onclick = () => go('upload');
+  const sv = $('#save'); if (sv) sv.onclick = saveNotes;
+  const rt = $('#retry'); if (rt) rt.onclick = startParse;
+  $$('.tp').forEach(b => b.onclick = () => { const t = S.topics.find(x => x.id === b.dataset.t); t.on = !t.on; renderParse(); });
+  const g = $('#go'); if (g) g.onclick = startQuiz;
+}
+
+/* ---------- notes file ---------- */
+const notesMd = () => S.docs.filter(d => !d.skipped).map(d => {
+  const ps = S.pages.filter(p => p.doc === d.name.replace(/\.pdf$/i, ''));
+  return `# ${d.name.replace(/\.pdf$/i, '')}\n` + ps.map(p => `\n## p${p.page}\n${p.text || '[image only: check the PDF]'}`).join('\n');
+}).join('\n\n---\n\n') + '\n';
+async function saveNotes(ev) {
+  const btn = ev && ev.currentTarget, data = notesMd(), name = 'unfold-notes.md';
+  const flash = t => { if (btn) { const o = btn.textContent; btn.textContent = t; setTimeout(() => { btn.textContent = o; }, 2200); } };
+  if (window.claude && claude.use) {
+    const d = await claude.use('downloads').catch(() => null);
+    if (!d) return flash('Saving isn’t available here');
+    try { await d.save({ filename: name, data }); flash('Saved'); } catch (e) { flash(e && e.code === 'declined' ? 'Cancelled' : 'Couldn’t save'); }
+  } else {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'text/markdown' })); a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000); flash('Saved');
+  }
+}
+
+/* ================= adaptive quiz ================= */
+// mastery: moving average of scores per topic; level 1–3 goes up after strong answers, down after weak ones
+const ALPHA = 0.4;
+const active = () => S.topics.filter(t => t.on);
+function pickTopic(avoid) {
+  const ts = active();
+  const w = ts.map(t => (t.m === null ? 1.2 : 1.05 - t.m) * (t.id === avoid && ts.length > 1 ? 0.25 : 1));
+  let r = Math.random() * w.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < ts.length; i++) { r -= w[i]; if (r <= 0) return ts[i]; }
+  return ts[ts.length - 1];
+}
+function excerpt(t) {
+  let ps = S.pages.filter(p => t.refs.includes(p.ref) && p.text.trim());
+  if (!ps.length) { const words = t.name.toLowerCase().split(/\W+/).filter(w => w.length > 3); ps = S.pages.filter(p => words.some(w => p.text.toLowerCase().includes(w))).slice(0, 12); }
+  let out = '';
+  for (const p of ps) { const chunk = `[${p.doc} p${p.page}]\n${p.text}\n\n`; if (out.length + chunk.length > 16000) break; out += chunk; }
+  return out || ps.map(p => p.text).join('\n').slice(0, 16000);
+}
+const LEVEL = { 1: 'level 1 of 3: definitions and one-step questions', 2: 'level 2 of 3: typical exam questions', 3: 'level 3 of 3: harder multi-step exam questions' };
+function validQ(q) {
+  if (!q || typeof q.q !== 'string' || !q.q.trim()) return false;
+  if (q.type === 'mc') return Array.isArray(q.opts) && q.opts.length >= 2 && Number.isInteger(q.ans) && q.ans >= 0 && q.ans < q.opts.length;
+  if (q.type === 'multi') return Array.isArray(q.opts) && q.opts.length >= 3 && Array.isArray(q.ans) && q.ans.length && q.ans.every(a => Number.isInteger(a) && a >= 0 && a < q.opts.length);
+  if (q.type === 'num') return Number.isFinite(+q.ans);
+  if (q.type === 'order') return Array.isArray(q.steps) && q.steps.length >= 3;
+  if (q.type === 'short') return typeof q.model === 'string';
+  return false;
+}
+async function genFor(t) {
+  const Q = S.quiz, recent = Q.history.filter(h => h.topic === t.id).slice(-8).map(h => '- ' + h.q.q.slice(0, 120)).join('\n');
+  const res = await ask(`You write exam practice questions for a university ${SUBJECTS[S.subject]} course, from the student's own lecture notes.
+Topic: ${t.name}
+Difficulty: ${LEVEL[t.level]}.
+${HINTS[S.subject]}
+Use ONLY ideas, notation and conventions from the notes below. Every question must be answerable from them.
+${recent ? `Don't repeat these earlier questions:\n${recent}\n` : ''}
+Reply with only a JSON array of 3 questions, mixing types. Each is one of:
+{"type":"mc","q":"…","opts":["…","…","…","…"],"ans":0,"explain":"why the answer is right and the others wrong","source":"<lecture> p<N>"}
+{"type":"multi","q":"… (select all that apply)","opts":["…","…","…","…"],"ans":[0,2],"explain":"…","source":"…"}
+{"type":"num","q":"…","ans":12.5,"unit":"m/s","tol":0.02,"explain":"worked solution with the numbers","source":"…"}
+{"type":"short","q":"…","model":"a full-marks answer","rubric":["one marking point","another marking point"],"explain":"…","source":"…"}
+{"type":"order","q":"Put these in order: …","steps":["first","second","third","fourth"],"explain":"…","source":"…"}
+"ans" in mc is the index of the correct option. For num, "ans" is a plain number in the given unit. Write code in \`\`\` blocks.
+
+Notes:
+${excerpt(t)}`, { modelTier: 'default', cache: false });
+  const qs = (Array.isArray(res) ? res : []).filter(validQ).map(q => ({ ...q, topic: t.id, level: t.level }));
+  if (!qs.length) throw { code: 'invalid_json' };
+  Q.buffer[t.id] = [...(Q.buffer[t.id] || []), ...shuffle(qs)];
+}
+// one generation per topic at a time; called only from a click
+function ensure(t) {
+  const Q = S.quiz;
+  if ((Q.buffer[t.id] || []).length) return Promise.resolve();
+  if (!Q.pending[t.id]) Q.pending[t.id] = genFor(t).finally(() => { delete Q.pending[t.id]; });
+  return Q.pending[t.id];
+}
+function startQuiz() {
+  S.quiz = { history: [], buffer: {}, pending: {}, cur: null, start: Date.now(), err: null, lastTopic: null };
+  S.screen = 'quiz'; window.scrollTo(0, 0); nextQuestion();
+}
+async function nextQuestion() {
+  const Q = S.quiz; Q.err = null;
+  const t = pickTopic(Q.lastTopic); Q.lastTopic = t.id;
+  Q.cur = { loading: t, q: null }; renderQuiz();
+  try {
+    await ensure(t);
+    // the level may have moved since this batch was written; prefer questions at the current level
+    const buf = Q.buffer[t.id]; const i = Math.max(0, buf.findIndex(q => q.level === t.level));
+    const q = buf.splice(i, 1)[0];
+    if (q.type === 'mc' || q.type === 'multi') { const perm = shuffle(q.opts.map((_, k) => k)); const opts = perm.map(k => q.opts[k]);
+      q.ans = q.type === 'mc' ? perm.indexOf(q.ans) : q.ans.map(a => perm.indexOf(a)); q.opts = opts; }
+    if (q.type === 'order') { let p; do { p = shuffle(q.steps.map((_, k) => k)); } while (p.every((v, k) => v === k)); q.ord = p; }
+    Q.cur = { q, st: { sel: q.type === 'multi' ? [] : null, val: '', ord: q.ord ? [...q.ord] : null }, locked: false, res: null };
+  } catch (e) { Q.cur = { loading: t, q: null }; Q.err = errText(e); }
+  renderQuiz();
+}
+const parseNum = s => { const t = String(s).trim().replace(/,/g, '').replace(/\s*[x×*]\s*10\s*\^?\s*/i, 'e').replace(/[a-zA-Zµ°/²³·\s]+$/, ''); return /^[-+−]?(\d+\.?\d*|\.\d+)(e[-+−]?\d+)?$/i.test(t) ? +t.replace(/−/g, '-') : NaN; };
+const answered = c => { const q = c.q, st = c.st; return q.type === 'mc' ? st.sel !== null : q.type === 'multi' ? st.sel.length > 0 : q.type === 'order' ? true : st.val.trim() !== ''; };
+async function mark(c) {
+  const q = c.q, st = c.st;
+  if (q.type === 'mc') return { score: +(st.sel === q.ans) };
+  if (q.type === 'multi') { const hit = st.sel.filter(a => q.ans.includes(a)).length, wrong = st.sel.length - hit; return { score: Math.max(0, (hit - wrong) / q.ans.length) }; }
+  if (q.type === 'order') return { score: st.ord.filter((v, k) => v === k).length / st.ord.length };
+  if (q.type === 'num') { const x = parseNum(st.val), a = +q.ans, tol = Number.isFinite(+q.tol) && +q.tol > 0 ? +q.tol : 0.02;
+    if (isNaN(x)) return { score: 0, feedback: 'That isn’t a number Unfold can read. Write it like 12.5, 3e8 or 3x10^8.' };
+    const ok = Math.abs(x - a) <= Math.abs(a) * tol + 1e-12;
+    const off10 = !ok && a !== 0 && [10, 100, 1000].some(f => Math.abs(x * f - a) <= Math.abs(a) * tol || Math.abs(x / f - a) <= Math.abs(a) * tol);
+    const sign = !ok && Math.abs(-x - a) <= Math.abs(a) * tol;
+    return { score: +ok, feedback: ok ? '' : sign ? 'Right size, wrong sign. Check your direction convention.' : off10 ? 'Off by a power of ten. Check your unit conversions.' : '' }; }
+  // short answer: Claude marks against the rubric
+  const r = await ask(`Mark a student's answer to a ${SUBJECTS[S.subject]} exam practice question. Be fair to different wording and ignore spelling. Give credit for each marking point met.
+Question: ${q.q}
+Full-marks answer: ${q.model}
+Marking points: ${(q.rubric || []).map((p, i) => `${i + 1}. ${p}`).join(' ')}
+Student's answer: ${st.val}
+Reply with only JSON: {"score": a number from 0 to 1, "verdict": "one short sentence", "feedback": "2 to 4 plain sentences: what they got right, what was missing or wrong and why"}`, { modelTier: 'default', effort: 'low', cache: false });
+  return { score: Math.max(0, Math.min(1, +r.score || 0)), verdict: String(r.verdict || ''), feedback: String(r.feedback || '') };
+}
+function record(c) {
+  const t = S.topics.find(x => x.id === c.q.topic), s = c.res.score;
+  t.m = t.m === null ? s : t.m + ALPHA * (s - t.m); t.n++; t.got += s;
+  if (s >= 0.8) { t.streak = Math.max(0, t.streak) + 1; if (t.streak >= 2 && t.level < 3) { t.level++; t.streak = 0; } }
+  else if (s < 0.5) { t.streak = Math.min(0, t.streak) - 1; if (t.level > 1) { t.level--; t.streak = 0; } }
+  else t.streak = 0;
+  S.quiz.history.push({ topic: t.id, q: c.q, score: s });
+}
+async function check(reveal) {
+  const c = S.quiz.cur; if (!c || c.locked || c.marking) return;
+  if (reveal) { c.res = { score: 0, revealed: true }; c.locked = true; record(c); renderQuiz(); prefetch(); return; }
+  c.marking = true; renderQuiz();
+  try { c.res = await mark(c); c.locked = true; record(c); prefetch(); }
+  catch (e) { c.markErr = errText(e); }
+  c.marking = false; renderQuiz();
+}
+// warm the buffer for the most likely next topic while the student reads the feedback
+function prefetch() { const ts = active().sort((a, b) => (a.m ?? -1) - (b.m ?? -1)); const t = ts[0]; if (t && t.id !== S.quiz.lastTopic) ensure(t).catch(() => {}); }
+
+function renderQuiz() {
+  if (S.screen !== 'quiz') return;
+  const Q = S.quiz, c = Q.cur, h = Q.history, n = h.length, total = h.reduce((a, x) => a + x.score, 0);
+  const t = c && (c.q ? S.topics.find(x => x.id === c.q.topic) : c.loading);
+  const weakest = active().filter(x => x.m !== null).sort((a, b) => a.m - b.m)[0];
+  app.innerHTML = `
+  <div class="top">${BRAND}<div class="row"><span class="qtop">${n ? `<b>${Math.round(total * 10) / 10}</b>&nbsp;/ ${n} marked` : 'First question'}</span><button class="btn ghost small" id="end">${n ? 'Finish' : 'Back'}</button></div></div>
+  <section class="screen">
+    <article class="qcard" aria-live="polite">${quizBody(c, t)}</article>
+    <div class="card"><div class="spread"><h3 style="font-size:24px">Your topics</h3>${weakest && weakest.m < 0.75 ? `<span class="chip">Focusing on ${esc(weakest.name)}</span>` : ''}</div>
+      <div class="mastery">${active().map(x => { const p = x.m === null ? null : Math.round(x.m * 100);
+        return `<div class="mt ${t && x.id === t.id ? 'focus' : ''} ${p !== null && p >= 80 ? 'hi' : ''}"><span class="nm" title="${esc(x.name)}">${esc(x.name)}</span><span class="bar"><i style="width:${p ?? 0}%"></i></span><span class="pc">${p === null ? 'new' : p + '%'}</span></div>`; }).join('')}</div>
+      <p class="fine">Mastery leans toward your recent answers. Questions get harder after two strong answers in a row and easier after a miss.</p></div>
+  </section>`;
+  $('#end').onclick = () => n ? go('done') : go('parse');
+  if (!c) return;
+  if (Q.err) { $('#retryq').onclick = nextQuestion; return; }
+  if (!c.q) return;
+  bindAnswer(c);
+  const prim = $('#prim');
+  if (prim) prim.onclick = () => c.locked ? nextQuestion() : check(false);
+  const rv = $('#reveal'); if (rv) rv.onclick = () => check(true);
+  const fo = $('#fbfocus'); if (fo) fo.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+const TYPE = { mc: 'Multiple choice', multi: 'Select all that apply', num: 'Calculate', short: 'Short answer', order: 'Put in order' };
+function quizBody(c, t) {
+  const Q = S.quiz;
+  if (!c || !c.q) return !t ? '' : `<div class="meta"><span class="chip">${esc(t.name)}</span></div>
+    ${Q.err ? `<p class="note bad">${esc(Q.err)}</p><div class="row"><button class="btn" id="retryq">Try again</button></div>`
+      : `<div class="thinking">${PLEAT('loader')}<span>Writing questions on ${esc(t.name)} from your notes…</span></div>`}`;
+  const q = c.q, st = c.st, L = 'ABCDEFGH', lock = c.locked;
+  let body = '';
+  if (q.type === 'mc' || q.type === 'multi') {
+    const m = q.type === 'multi';
+    body = `<div class="opts" role="group">${q.opts.map((o, i) => { const chosen = m ? st.sel.includes(i) : st.sel === i, right = m ? q.ans.includes(i) : q.ans === i;
+      const cls = lock ? (right ? (chosen || !m ? 'right' : 'missed') : chosen ? 'wrong' : '') : chosen ? 'sel' : '';
+      return `<button class="opt ${cls}" data-i="${i}" ${lock ? 'disabled' : ''} aria-pressed="${chosen}"><span class="k">${m ? (chosen ? '✓' : '') : L[i]}</span><span>${fmt(o)}</span></button>`; }).join('')}</div>`;
+  } else if (q.type === 'num') {
+    body = `<div class="numrow"><input id="num" inputmode="decimal" autocomplete="off" placeholder="Your answer" value="${esc(st.val)}" ${lock ? `disabled class="${c.res.score ? 'right' : 'wrong'}"` : ''} aria-label="Your answer${q.unit ? ' in ' + esc(q.unit) : ''}">${q.unit ? `<span class="muted">${esc(q.unit)}</span>` : ''}<span class="fine">3e8 or 3x10^8 works</span></div>`;
+  } else if (q.type === 'short') {
+    body = `<textarea id="short" placeholder="Write your answer. Show your steps if it’s a trace or a derivation." ${lock ? 'disabled' : ''} style="min-height:130px">${esc(st.val)}</textarea>`;
+  } else if (q.type === 'order') {
+    body = `<ol class="olist">${st.ord.map((si, p) => `<li class="oi ${lock ? (si === p ? 'right' : 'wrong') : ''}"><span class="p">${p + 1}</span><span>${fmt(q.steps[si])}</span>${lock ? '<span></span>' : `<span class="mv"><button data-p="${p}" data-d="-1" ${p === 0 ? 'disabled' : ''} aria-label="Move up">↑</button><button data-p="${p}" data-d="1" ${p === st.ord.length - 1 ? 'disabled' : ''} aria-label="Move down">↓</button></span>`}</li>`).join('')}</ol>`;
+  }
+  let fb = '';
+  if (lock) {
+    const s = c.res.score, cls = c.res.revealed ? 'part' : s >= 0.999 ? 'ok' : s > 0 ? 'part' : 'bad';
+    const verdict = c.res.revealed ? 'Here’s the answer' : s >= 0.999 ? 'Correct' : s > 0 ? `Partly right · ${Math.round(s * 100)}%` : 'Not quite';
+    const answer = q.type === 'num' ? `<p><b>Answer: ${esc(q.ans)}${q.unit ? ' ' + esc(q.unit) : ''}</b></p>` : q.type === 'short' ? `<p class="h">FULL-MARKS ANSWER</p><div>${fmt(q.model)}</div>` : q.type === 'order' ? `<p class="h">CORRECT ORDER</p><div>${q.steps.map((x, i) => `${i + 1}. ${fmt(x)}`).join('<br>')}</div>` : '';
+    fb = `<div class="fb ${cls}" id="fbfocus"><div class="v">${verdict}</div>${c.res.verdict ? `<p>${esc(c.res.verdict)}</p>` : ''}${c.res.feedback ? `<p>${fmt(c.res.feedback)}</p>` : ''}${answer}${q.explain ? `<p class="h">WHY</p><div>${fmt(q.explain)}</div>` : ''}${q.source ? `<p class="src">From your notes: ${esc(q.source)}</p>` : ''}</div>`;
+  }
+  const lv = `<span class="lvl" aria-label="Level ${q.level} of 3">${[1, 2, 3].map(i => `<i class="${i <= q.level ? 'on' : ''}"></i>`).join('')}</span>`;
+  return `<div class="meta"><span class="chip">${esc(t.name)}</span><span class="chip o">${TYPE[q.type]}${lv}</span></div>
+    <div class="qtext">${fmt(q.q)}</div>${body}
+    ${c.marking ? `<div class="thinking">${PLEAT('loader')}<span>Marking your answer…</span></div>` : ''}${c.markErr ? `<p class="note bad">${esc(c.markErr)}</p>` : ''}${fb}
+    <div class="spread">${lock ? '<span></span>' : `<button class="btn ghost" id="reveal" ${c.marking ? 'disabled' : ''}>I don’t know</button>`}
+      <button class="btn" id="prim" ${!lock && (!answered(c) || c.marking) ? 'disabled' : ''}>${lock ? 'Next question →' : c.marking ? 'Marking…' : 'Check'}</button></div>`;
+}
+function bindAnswer(c) {
+  if (c.locked) return;
+  const q = c.q, st = c.st, upd = () => { const p = $('#prim'); if (p) p.disabled = !answered(c) || c.marking; };
+  $$('.opt').forEach(b => b.onclick = () => { const i = +b.dataset.i; if (q.type === 'multi') st.sel = st.sel.includes(i) ? st.sel.filter(x => x !== i) : [...st.sel, i]; else st.sel = i; renderQuiz(); });
+  const num = $('#num'); if (num) { num.oninput = () => { st.val = num.value; upd(); }; num.onkeydown = e => { if (e.key === 'Enter' && answered(c)) check(false); }; setTimeout(() => num.focus({ preventScroll: true }), 0); }
+  const sh = $('#short'); if (sh) sh.oninput = () => { st.val = sh.value; upd(); };
+  $$('.mv button').forEach(b => b.onclick = () => { const p = +b.dataset.p, d = +b.dataset.d; [st.ord[p], st.ord[p + d]] = [st.ord[p + d], st.ord[p]]; renderQuiz(); });
+}
+document.addEventListener('keydown', e => {
+  if (S.screen !== 'quiz' || !S.quiz || !S.quiz.cur || !S.quiz.cur.q) return;
+  const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'textarea' || tag === 'input' || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (/^[1-8]$/.test(e.key)) { const b = $$('.opt')[+e.key - 1]; if (b && !b.disabled) b.click(); }
+  if (e.key === 'Enter' && tag !== 'button') { const p = $('#prim'); if (p && !p.disabled) { e.preventDefault(); p.click(); } }
+});
+
+function renderDone() {
+  const h = S.quiz.history, n = h.length, total = h.reduce((a, x) => a + x.score, 0), pct = n ? Math.round(100 * total / n) : 0;
+  const ts = active().filter(t => t.n).sort((a, b) => a.m - b.m);
+  const mins = Math.max(1, Math.round((Date.now() - S.quiz.start) / 60000));
+  app.innerHTML = `
+  <div class="top">${BRAND}</div>
+  <section class="screen">
+    <header class="hero"><p class="label">${n} question${n === 1 ? '' : 's'} · ${mins} min</p><div class="score">${pct}%</div>
+      <p class="lede">${Math.round(total * 10) / 10} of ${n} marks, counting partial credit. ${ts.length && ts[0].m < 0.6 ? `Spend your next session on <b>${esc(ts[0].name)}</b>.` : 'Nice, nothing is badly weak. Push the level up next time.'}</p></header>
+    <div class="card"><h3 style="font-size:24px">By topic</h3><div class="mastery">${ts.map(t => { const p = Math.round(100 * t.got / t.n);
+      return `<div class="mt ${p >= 80 ? 'hi' : ''}"><span class="nm">${esc(t.name)}</span><span class="bar"><i style="width:${p}%"></i></span><span class="pc">${p}% · ${t.n}</span></div>`; }).join('') || '<p class="muted">Nothing answered yet.</p>'}</div></div>
+    <div class="spread"><button class="btn ghost" id="save">Save the notes file</button><div class="row"><button class="btn ghost" id="new">New PDFs</button><button class="btn" id="more">Keep practising</button></div></div>
+  </section>`;
+  $('#more').onclick = () => { go('quiz'); if (!S.quiz.cur || S.quiz.cur.locked) nextQuestion(); };
+  $('#new').onclick = () => { S.files = []; go('upload'); };
+  $('#save').onclick = saveNotes;
+}
+
+['dragover', 'drop'].forEach(t => window.addEventListener(t, e => e.preventDefault()));
+sampler();
+render();
+window.__unfold = { S, render, squeeze, parseNum, mark, validQ, pickTopic, record };
+})();
+</script>
