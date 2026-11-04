@@ -1,0 +1,44 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Cheat Sheet</title>
+<style>
+@page { size: letter; margin: 0.3in; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 7.7pt/1.3 "Helvetica Neue", Helvetica, Arial, sans-serif; color: #000; }
+.page { column-count: 3; column-gap: 0.16in; column-rule: 0.5pt solid #bbb; height: 10.4in; column-fill: auto; }
+h1 { font-size: 10.5pt; margin: 0 0 3pt; column-span: all; border-bottom: 1.2pt solid #000; padding-bottom: 2pt; }
+h2 { font-size: 8.3pt; margin: 5pt 0 2pt; background: #000; color: #fff; padding: 1pt 3pt; break-after: avoid; }
+h3 { font-size: 7.7pt; margin: 3pt 0 1pt; break-after: avoid; }
+p { margin: 0 0 2pt; }
+ul { margin: 0 0 2pt; padding-left: 9pt; } li { margin: 0 0 1pt; }
+.m, pre { font-family: Menlo, "SF Mono", Consolas, monospace; font-size: 7pt; }
+pre { margin: 1pt 0 3pt; padding: 2pt 4pt; background: #efefef; border-left: 1.5pt solid #000; white-space: pre; break-inside: avoid; line-height: 1.25; }
+table { border-collapse: collapse; width: 100%; margin: 1pt 0 3pt; break-inside: avoid; }
+td, th { border: 0.4pt solid #999; padding: 0.8pt 2.5pt; vertical-align: top; text-align: left; }
+th { background: #e2e2e2; }
+.c { text-align: center; }
+.box { border: 1pt solid #000; padding: 3pt 4pt; margin: 2pt 0 4pt; break-inside: avoid; }
+.no li::marker { content: "✗ "; }
+</style></head><body>
+<div class="page">
+<h1>COURSE 101 · MIDTERM 1 CHEAT SHEET</h1>
+
+<h2>I WANT TO… → WRITE</h2>
+<table><tr><th>I want to…</th><th>Write</th></tr>
+<tr><td>find final speed from rest</td><td class="m">v = at</td></tr>
+<tr><td>find distance from rest</td><td class="m">d = ½at²</td></tr></table>
+
+<h2>RECIPE: SOLVE A PROBLEM</h2>
+<ol style="margin:0 0 2pt;padding-left:11pt"><li>List knowns + unknown with units.</li><li>Pick the equation with exactly those.</li><li>Solve with symbols, then plug in.</li></ol>
+
+<h2>KEY TABLE</h2>
+<table><tr><th>Structure</th><th>Insert</th><th>Search</th></tr>
+<tr><td>Array</td><td class="c">O(n)</td><td class="c">O(n)</td></tr>
+<tr><td>BST (balanced)</td><td class="c">O(log n)</td><td class="c">O(log n)</td></tr></table>
+
+<h2>WORKED EXAMPLE</h2>
+<div class="box">Stack: push 4, push 7, pop, push 1 → <b>[4 1]</b> (bottom → top)</div>
+
+<h2>NEVER DO THIS</h2>
+<ul class="no"><li>Mixing cm and m in one equation. Convert first.</li><li><span class="m">data[top]</span> when top counts items. Use <span class="m">top - 1</span>.</li></ul>
+</div>
+</body></html>

@@ -1,0 +1,640 @@
+<title>Study Drill</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one 760px study column on faint graph paper; sticky question bar; text editors as a dark terminal panel in both themes. */
+:root{
+  --bg:#eef0f5; --grid:rgba(40,60,130,.05); --surface:#ffffff; --surface-2:#f4f6fa;
+  --ink:#161c2b; --muted:#59627a; --line:#d6dbe6;
+  --accent:#2b4fc4; --accent-ink:#ffffff; --accent-soft:#dfe6fb;
+  --sel:#a8670c; --sel-soft:#fbeed6;
+  --ok:#1b7745; --ok-soft:#dcf1e3; --bad:#b0352d; --bad-soft:#f8e1de;
+  --term:#141a26; --term-ink:#dbe3f5; --term-muted:#7f8aa6; --term-line:#2a3348;
+  --shadow:0 1px 2px rgba(22,28,43,.06),0 8px 24px rgba(22,28,43,.06);
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1018; --grid:rgba(140,160,230,.04); --surface:#151a25; --surface-2:#1b2130;
+  --ink:#e3e8f4; --muted:#949db5; --line:#2a3142;
+  --accent:#8aa4f5; --accent-ink:#0b1430; --accent-soft:#1f2a4a;
+  --sel:#e8a84c; --sel-soft:#3a2b13;
+  --ok:#62cd92; --ok-soft:#163726; --bad:#f2837a; --bad-soft:#3f1e1c;
+  --term:#0a0d14; --term-ink:#dbe3f5; --term-muted:#7f8aa6; --term-line:#252d40;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1018; --grid:rgba(140,160,230,.04); --surface:#151a25; --surface-2:#1b2130;
+  --ink:#e3e8f4; --muted:#949db5; --line:#2a3142;
+  --accent:#8aa4f5; --accent-ink:#0b1430; --accent-soft:#1f2a4a;
+  --sel:#e8a84c; --sel-soft:#3a2b13;
+  --ok:#62cd92; --ok-soft:#163726; --bad:#f2837a; --bad-soft:#3f1e1c;
+  --term:#0a0d14; --term-ink:#dbe3f5; --term-muted:#7f8aa6; --term-line:#252d40;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:20px 96px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.1}
+button{font:inherit;color:inherit}
+code{font-family:var(--f-mono);font-size:.9em;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:.05em .35em;white-space:nowrap}
+pre{font-family:var(--f-mono);font-size:13.5px;background:var(--term);color:var(--term-ink);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:10px 0 0;line-height:1.55}
+pre .c{color:var(--term-muted)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.muted{color:var(--muted)}
+.hero{display:grid;gap:10px;padding-block:18px 22px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.hero h1{font-size:clamp(40px,9vw,64px);font-weight:800;letter-spacing:-.02em}
+.hero h1 .reg{font:600 clamp(16px,3.4vw,22px) var(--f-mono);vertical-align:middle;margin-left:10px;background:var(--term);color:var(--term-ink);padding:4px 10px;border-radius:6px;letter-spacing:0}
+.lede{margin:0;max-width:62ch;color:var(--muted);font-size:17px}
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.modes{grid-template-columns:1fr}}
+.mode{display:grid;gap:6px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;cursor:pointer;box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
+.mode:hover{border-color:var(--accent);transform:translateY(-1px)}
+.mode h3{font-size:20px;font-weight:600}
+.mode p{margin:0;color:var(--muted);font-size:14px}
+.mode .go{font-size:13px;font-weight:700;color:var(--accent)}
+.mode.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.mode.primary p,.mode.primary .go{color:inherit;opacity:.88}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:14px}
+.panel h2{font-size:18px;font-weight:600;margin-bottom:10px}
+.row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.lbl{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;min-width:84px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.seg button{background:var(--surface);border:0;border-right:1px solid var(--line);padding:7px 12px;cursor:pointer;font-size:14px}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.settings{display:grid;gap:12px}
+.topics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.topics{grid-template-columns:1fr}}
+.topic{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);cursor:pointer}
+.topic .box{width:18px;height:18px;border-radius:5px;border:2px solid var(--muted);display:grid;place-items:center;font-size:12px;line-height:1}
+.topic[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.topic[aria-pressed="true"] .box{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.topic .tn{font-weight:700;font-size:15px}
+.topic .meter{grid-column:2;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.bar{flex:1;height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.toprow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.toprow h2{margin:0}
+.link{background:none;border:0;color:var(--accent);cursor:pointer;font-weight:700;font-size:14px;padding:0}
+details.ref{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+details.ref summary{cursor:pointer;padding:14px 16px;font-family:var(--f-display);font-weight:600;font-size:18px}
+.refbody{padding:0 16px 16px;display:grid;gap:16px}
+.refbody h3{font-size:15px;font-family:var(--f-body);font-weight:700;margin-bottom:6px}
+.refbody ul{margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px}
+.tscroll{overflow-x:auto;margin-top:6px}
+table.tt{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.tt th,.tt td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+.tt th{background:var(--surface-2);font-weight:700}
+.tt td code{white-space:nowrap}
+
+.qbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px 8px;display:grid;gap:8px}
+.qbar .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.qprog{font-weight:700;font-size:14px}
+.qstat{font:600 14px var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.ghost{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px}
+.track{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.track i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.dots{display:flex;flex-wrap:wrap;gap:4px}
+.dots button{width:26px;height:26px;border-radius:6px;border:1px solid var(--line);background:var(--surface);font:600 11px var(--f-mono);cursor:pointer;padding:0}
+.dots button.ans{background:var(--accent-soft);border-color:var(--accent)}
+.dots button.cur{outline:2px solid var(--sel);outline-offset:1px}
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow);margin-top:8px;display:grid;gap:14px;min-width:0}
+@media (max-width:480px){.qcard{padding:16px}}
+.qmeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{font-size:12px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.qtype{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.prompt{font-size:18px;line-height:1.5;min-width:0}
+.prompt pre{font-size:14px}
+.qbody{min-width:0;display:grid;gap:10px}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;transition:border-color .12s,background .12s}
+.opt:hover:not(:disabled){border-color:var(--muted)}
+.opt .key{flex:none;width:24px;height:24px;border-radius:6px;border:1.5px solid var(--line);display:grid;place-items:center;font:600 12px var(--f-mono);color:var(--muted)}
+.opt .otext{min-width:0;overflow-wrap:anywhere}
+.opt.sel{border-color:var(--sel);background:var(--sel-soft)}
+.opt.sel .key{background:var(--sel);border-color:var(--sel);color:var(--surface)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.right .key{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .key{background:var(--bad);border-color:var(--bad);color:var(--surface)}
+.opt.missed{border-style:dashed;border-color:var(--ok)}
+.opt:disabled{cursor:default;color:inherit}
+.opts.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+input.fill{font:600 18px var(--f-mono);padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:min(320px,100%)}
+input.fill.right{border-color:var(--ok);background:var(--ok-soft)}
+input.fill.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.mrow:last-child{border-bottom:0}
+@media (max-width:520px){.mrow{grid-template-columns:1fr;gap:6px}}
+select{font:inherit;font-size:14px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);width:100%;min-width:0}
+select.right{border-color:var(--ok);background:var(--ok-soft)} select.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.fix{font-size:13px;color:var(--ok);font-weight:700}
+.olist{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.oitem{display:flex;gap:10px;align-items:center;background:var(--surface-2);border:1.5px solid var(--line);border-radius:10px;padding:8px 10px}
+.oitem .otext{flex:1;min-width:0;font-family:var(--f-mono);font-size:14px;overflow-wrap:anywhere;white-space:pre-wrap}
+.oitem .pos{font:600 12px var(--f-mono);color:var(--muted);width:20px}
+.oitem .mv{display:flex;gap:4px}
+.oitem .mv button{width:34px;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--surface);cursor:pointer;font-size:15px}
+.oitem .mv button:disabled{opacity:.35;cursor:default}
+.oitem.right{border-color:var(--ok);background:var(--ok-soft)} .oitem.wrong{border-color:var(--bad);background:var(--bad-soft)}
+
+.spec{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:var(--muted)}
+.spec b{color:var(--ink)}
+.editor{background:var(--term);border-radius:10px;border:1px solid var(--term-line);overflow:hidden}
+.editor .ebar{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;border-bottom:1px solid var(--term-line);font:600 12px var(--f-mono);color:var(--term-muted)}
+textarea.code{display:block;width:100%;min-height:210px;resize:vertical;border:0;background:transparent;color:var(--term-ink);font:14px/1.6 var(--f-mono);padding:12px 14px;tab-size:4;outline:none}
+textarea.code:disabled{opacity:.9}
+.runout{font:13px/1.55 var(--f-mono);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:pre-wrap}
+.runout.err{border-color:var(--bad);background:var(--bad-soft)}
+.regs{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:2px 16px}
+
+.feedback{border-radius:10px;padding:12px 14px;font-size:15px;display:grid;gap:8px;min-width:0}
+.feedback.ok{background:var(--ok-soft);border:1px solid var(--ok)}
+.feedback.bad{background:var(--bad-soft);border:1px solid var(--bad)}
+.feedback.neutral{background:var(--surface-2);border:1px solid var(--line)}
+.feedback .verdict{font-family:var(--f-display);font-weight:600;font-size:18px}
+.feedback.ok .verdict{color:var(--ok)} .feedback.bad .verdict{color:var(--bad)}
+.feedback p{margin:0}
+.actions{display:flex;justify-content:space-between;gap:10px;margin-top:14px;flex-wrap:wrap}
+.actions .l,.actions .r{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:11px 20px;font-weight:700;cursor:pointer;background:var(--accent);color:var(--accent-ink);font-size:15px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.small{padding:7px 14px;font-size:14px}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.res-head{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;padding-block:18px}
+@media (max-width:480px){.res-head{grid-template-columns:1fr}}
+.ring{width:120px;height:120px}
+.ring text{font-family:var(--f-display);font-weight:800;fill:var(--ink)}
+.res-head h1{font-size:34px}
+.res-head p{margin:6px 0 0;color:var(--muted)}
+.tbars{display:grid;gap:10px}
+.tbar{display:grid;grid-template-columns:minmax(0,1fr) 2fr auto;gap:10px;align-items:center;font-size:14px}
+@media (max-width:480px){.tbar{grid-template-columns:1fr auto}.tbar .bar{grid-column:1/-1;grid-row:2}}
+.tbar .num{font:600 13px var(--f-mono);color:var(--muted)}
+.bar.big{height:8px}
+.bar i.low{background:var(--bad)} .bar i.mid{background:var(--sel)} .bar i.hi{background:var(--ok)}
+.review{display:grid;gap:12px;margin-top:14px}
+.rv-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.badge{font:700 12px var(--f-body);padding:3px 9px;border-radius:999px}
+.badge.ok{background:var(--ok-soft);color:var(--ok)} .badge.bad{background:var(--bad-soft);color:var(--bad)}
+.tt.sm{font-size:13px}.tt.sm th,.tt.sm td{padding:4px 8px}
+.tt caption{text-align:left;font:700 13px var(--f-mono);padding:6px 0 4px;color:var(--muted)}
+.tt td.null{color:var(--muted);font-style:italic}
+.prompt .tscroll{margin-top:8px}
+details.data{font-size:14px}
+details.data summary{cursor:pointer;color:var(--accent);font-weight:700}
+.pal{display:flex;flex-wrap:wrap;gap:4px;padding:8px 10px;border-bottom:1px solid var(--term-line)}
+.pal button{font:600 14px var(--f-mono);background:var(--term-line);color:var(--term-ink);border:0;border-radius:6px;padding:4px 9px;cursor:pointer;min-width:34px}
+.pal button:hover{background:var(--accent);color:var(--accent-ink)}
+code.wrapc{white-space:pre-wrap;overflow-wrap:anywhere}
+.ref ul li b{font-family:var(--f-mono);font-weight:600}
+
+.path{display:grid;gap:8px}
+.path .topic{grid-template-columns:auto minmax(0,1fr) auto;gap:10px;cursor:default}
+.topic.on{border-color:var(--accent);background:var(--accent-soft)}
+.topic .tg{width:22px;height:22px;border-radius:6px;border:2px solid var(--muted);background:none;cursor:pointer;display:grid;place-items:center;font-size:12px;padding:0}
+.topic.on .tg{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tmain{display:grid;gap:3px;min-width:0}
+.tmain .meter{grid-column:auto}
+.step{font:600 12px var(--f-mono);color:var(--muted);margin-right:8px}
+.why{font-size:13px;color:var(--muted)}
+.next{font-size:11px;font-weight:700;background:var(--sel-soft);color:var(--sel);padding:2px 8px;border-radius:999px;margin-left:8px;white-space:nowrap}
+.go-t{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px;font-weight:700;color:var(--accent);white-space:nowrap}
+@media (max-width:520px){.path .topic{grid-template-columns:auto minmax(0,1fr)}.go-t{grid-column:2;justify-self:start}}
+.uml{font:12px var(--f-mono);display:block;width:100%;height:auto;min-width:520px}
+.uml .eb{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.uml .eb.fx{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
+.uml .sep{stroke:var(--ink);stroke-opacity:.35;stroke-width:1}
+.uml .sep.fx{stroke:var(--accent);stroke-opacity:1}
+.uml text{fill:var(--ink)}
+.uml .en{font:600 13px var(--f-body);text-anchor:middle}
+.uml .at{font-size:12px}
+.uml .ln{stroke:var(--muted);stroke-width:1.3;fill:none}
+.uml .ln.fx{stroke:var(--accent);stroke-width:2.4}
+.uml .dash{stroke-dasharray:5 4}
+.uml .tri{fill:var(--surface);stroke:var(--muted);stroke-width:1.3}
+.uml .mk{fill:var(--surface-2)}
+.uml .m{font:600 11.5px var(--f-mono)}
+.uml .rn{font:italic 12px var(--f-body);fill:var(--muted)}
+.msteps{margin:8px 0;padding-left:22px;display:grid;gap:12px}
+.msteps .sh{display:block;margin-bottom:2px}
+.msteps p{margin:4px 0}
+details.how{margin-top:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 12px}
+details.how summary{cursor:pointer;padding:10px 0;font-weight:700}
+details.how ol{margin:0 0 12px;padding-left:22px;display:grid;gap:6px;font-size:15px}
+.diag{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:10px}
+.codepick{background:var(--term);border-radius:10px;padding:8px 0;overflow-x:auto;font:13px/1.55 var(--f-mono)}
+.cl{display:flex;width:100%;min-width:max-content;background:none;border:0;border-left:3px solid transparent;color:var(--term-ink);text-align:left;padding:0 14px 0 0;cursor:pointer;white-space:pre;font:inherit}
+.cl .lnum{width:38px;flex:none;text-align:right;color:var(--term-muted);padding-right:12px;user-select:none}
+.cl:hover:not(:disabled){background:rgba(140,160,230,.08)}
+.cl:disabled{cursor:default}
+.cl.sel{background:rgba(232,168,76,.18);border-left-color:var(--sel)}
+.cl.right{background:rgba(98,205,146,.2);border-left-color:var(--ok)}
+.cl.wrong{background:rgba(242,131,122,.22);border-left-color:var(--bad)}
+.cl.missed{border-left:3px dashed var(--ok);background:rgba(98,205,146,.07)}
+.prompt ul{margin:8px 0;padding-left:22px;display:grid;gap:4px;font-size:16px}
+.prompt ol{margin:8px 0;padding-left:24px;display:grid;gap:4px;font-size:16px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap" id="app"><p class="muted" style="padding-top:40px">Loading…</p></div>
+
+<script>
+(() => {
+/* ================= helpers ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const ri = n => Math.floor(Math.random() * n);
+const rr = (a, b) => a + ri(b - a + 1);
+const pick = a => a[ri(a.length)];
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = ri(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+const P = s => `<pre>${esc(s)}</pre>`;
+function gradeLines(q, st) {
+  const hits = st.sel.filter(i => q.ans.includes(i)).length, wrong = st.sel.length - hits;
+  const frac = Math.max(0, (hits - wrong) / q.ans.length);
+  return { ok: hits === q.ans.length && !wrong, frac, hits, wrong };
+}
+const mc = (topic, q, opts, ans, exp, extra = {}) => ({ type: 'mc', topic, q, opts, ans, exp, ...extra });
+const tf = (topic, q, ans, exp) => ({ type: 'mc', keep: true, two: true, topic, q, opts: ['True', 'False'], ans: ans ? 0 : 1, exp });
+const multi = (topic, q, opts, ans, exp) => ({ type: 'multi', topic, q, opts, ans, exp });
+const num = (topic, q, ans, exp, extra = {}) => ({ type: 'num', topic, q, ans, exp, ...extra });
+const match = (topic, q, pairs, exp) => ({ type: 'match', topic, q, pairs, exp });
+const order = (topic, q, steps, exp) => ({ type: 'order', topic, q, steps, exp });
+const HOW = ['0', '1', '2', '3', '4'], howMany = (topic, q, ans, exp) => mc(topic, `How many of these statements are true?${q}`, HOW, ans, exp, { keep: true });
+const ol = items => `<ol>${items.map(s => `<li>${s}</li>`).join('')}</ol>`;
+const AE = ['a)', 'b)', 'c)', 'd)', 'e)'], exam = (topic, q, opts, ans, exp) => mc(topic, q, opts.map((o, i) => `${AE[i]} ${o}`), ans, exp, { keep: true });
+const seqQ = (topic, q, ref, exp, extra = {}) => ({ type: 'code', seq: true, topic, q, ref, exp, ...extra });
+
+/* ================= COURSE: the only section you change per course ================= */
+// Everything below the "engine" line is shared. Replace these samples with questions from COURSE.md.
+const COURSE = {
+  key: 'sample-m1',                       // localStorage prefix: change per course/exam or progress gets mixed
+  title: 'Study Drill', badge: 'Δ',
+  eyebrow: 'COURSE 101 · Midterm 1 · Lectures 1–6',
+  lede: 'Sample questions showing every question type. Replace the COURSE block with your course.',
+  mockDesc: 'Laid out like the past midterm. Out of 13.',
+  labDesc: 'Endless generated questions: new numbers every time.'
+};
+// Study order. A step counts as done at 75%+ over 5 or more questions.
+const TOPICS = { kin: 'Kinematics', stack: 'Stacks & queues', bigo: 'Big-O' };
+const WHY = {
+  kin: 'Plug-and-chug marks: pick the right equation, keep units straight.',
+  stack: 'Tracing questions: write the contents after a sequence of operations.',
+  bigo: 'Quick MC marks on every exam.'
+};
+
+const BANK = [
+  mc('bigo', 'What is the worst-case time of binary search on a sorted array of n items?', ['O(log n)', 'O(n)', 'O(n log n)', 'O(1)'], 0,
+    'Each step halves what is left: n → n/2 → n/4 … reaches 1 after log₂ n steps.'),
+  tf('bigo', 'O(2n + 5) is the same as O(n).', true, 'Drop constants and lower-order terms.'),
+  multi('stack', 'Which are LIFO (last in, first out)?', ['Stack', 'Queue', 'Call stack', 'Printer queue'], [0, 2],
+    'Stacks (and the call stack) are LIFO. Queues are FIFO.'),
+  num('kin', 'A car speeds up from rest at 2.0 m/s² for 5.0 s. How far does it go (in m)?', 25,
+    'd = v₀t + ½at² = 0 + ½(2.0)(5.0)² = 25 m.', { unit: 'm' }),
+  match('bigo', 'Match each operation to its worst-case time.', [['Array index lookup', 'O(1)'], ['Linked list search', 'O(n)'], ['Merge sort', 'O(n log n)'], ['Bubble sort', 'O(n²)']],
+    'Lookup by index is direct; search walks the list; merge sort splits log n times and merges n per level; bubble sort compares every pair.'),
+  order('kin', 'Put the steps for a kinematics problem in order.', ['List knowns and the unknown, with units', 'Pick the equation that has exactly those', 'Solve for the unknown symbolically', 'Plug in numbers and check units'],
+    'Symbols first, numbers last: it makes unit mistakes obvious.'),
+  // seq: answer is a list; partial credit = share of positions right
+  seqQ('stack', 'Start with an empty stack. Write the contents bottom → top after:<br><code>push 4, push 7, pop, push 1, push 9, pop, push 3</code>', '4 1 3',
+    'push 4 → [4]; push 7 → [4 7]; pop → [4]; push 1 → [4 1]; push 9 → [4 1 9]; pop → [4 1]; push 3 → [4 1 3].'),
+  { type: 'lines', topic: 'stack', marks: 2, q: 'This array stack keeps <code>top</code> = the number of items. <code>peek()</code> should return the top item without removing it. Click every line with a logical error. There are 2 errors.',
+    lines: ['public int peek() {', '  if (top == -1)', '    throw new EmptyStackException();', '  return data[top];', '}'], ans: [1, 3],
+    notes: [{ n: 1, bad: 'if (top == -1)', why: 'top counts items, so an empty stack has top == 0.', fix: 'if (top == 0)' },
+            { n: 3, bad: 'return data[top];', why: 'With top items, the last one is at index top - 1. data[top] is past the end.', fix: 'return data[top - 1];' }] }
+];
+
+// Generators: functions returning a fresh question. ~40% of a drill comes from here, so numbers change every attempt.
+function genKin() {
+  const a = rr(1, 9) / 2, t = rr(2, 12), v = a * t;
+  return num('kin', `From rest, an object accelerates at ${a} m/s² for ${t} s. What is its final speed (in m/s)?`, v,
+    `v = v₀ + at = 0 + (${a})(${t}) = ${v} m/s.`, { unit: 'm/s', gen: true });
+}
+function genStack() {
+  const st = [], ops = [];
+  for (let i = 0; i < rr(5, 8); i++) { if (st.length && ri(3) === 0) { st.pop(); ops.push('pop'); } else { const x = rr(1, 9); st.push(x); ops.push(`push ${x}`); } }
+  if (!st.length) { st.push(5); ops.push('push 5'); }
+  return seqQ('stack', `Start with an empty stack. Write the contents bottom → top after:<br><code>${ops.join(', ')}</code>`, st.join(' '),
+    `Final stack: [${st.join(' ')}].`, { gen: true });
+}
+const GEN = { kin: [genKin], stack: [genStack] };
+
+// Mock exam layout, top to bottom. from = which BANK questions; gen = a GEN topic (fresh each time).
+const MOCK = [
+  { sec: 'Part I · Multiple choice', marks: 1, n: 3, from: q => q.type === 'mc' },
+  { sec: 'Part II · Problems', marks: 3, n: 2, gen: 'kin' },
+  { sec: 'Part III · Tracing', marks: 2, n: 1, gen: 'stack' },
+  { sec: 'Part III · Find the bugs', marks: 2, n: 1, from: q => q.type === 'lines' }
+];
+
+// Shown at the bottom of the home page. Formulas, notation, rules. Empty string hides it.
+const REF_HTML = `<div><h3>Kinematics (constant a)</h3><ul><li>v = v₀ + at</li><li>d = v₀t + ½at²</li><li>v² = v₀² + 2ad</li></ul></div>
+<div><h3>Big-O order</h3><p>O(1) &lt; O(log n) &lt; O(n) &lt; O(n log n) &lt; O(n²) &lt; O(2ⁿ)</p></div>`;
+/* ================= engine: shared, don't edit per course ================= */
+const TOPIC_KEYS = Object.keys(TOPICS);
+
+/* ================= grading ================= */
+const norm = s => String(s).toLowerCase().replace(/[\[\](){},;]/g, ' ').trim().split(/\s+/).filter(Boolean);
+// code questions: q.check(src) → { ok, msg, frac } if given; seq → list compare with partial credit; else whitespace/case-insensitive match
+function codeResult(q, src) {
+  if (q.check) return q.check(src);
+  const want = norm(q.ref), got = norm(src);
+  if (q.seq) {
+    const right = want.filter((w, i) => got[i] === w).length, ok = right === want.length && got.length === want.length;
+    return { ok, frac: ok ? 1 : Math.max(0, right - Math.max(0, got.length - want.length)) / want.length,
+      msg: ok ? 'Exactly right.' : `${right} of ${want.length} positions right${got.length !== want.length ? ` (you wrote ${got.length} items, expected ${want.length})` : ''}.` };
+  }
+  const ok = got.join(' ') === want.join(' ');
+  return { ok, msg: ok ? 'Matches the answer.' : 'Doesn’t match the expected answer. Compare with it below.' };
+}
+// "3e8", "3x10^8", "3×10^8", "1,200" → number
+const parseNum = s => { const t = String(s).trim().replace(/,/g, '').replace(/\s*[x×*]\s*10\^?\s*/i, 'e'); return /^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(t) ? +t : NaN; };
+// integer answers must be exact; decimals get 1% unless q.tol (relative) says otherwise
+const numOk = (q, v) => { const x = parseNum(v), tol = q.tol ?? (Number.isInteger(q.ans) ? 0 : 0.01); return !isNaN(x) && Math.abs(x - q.ans) <= Math.abs(q.ans) * tol + 1e-12; };
+function prep(q0) {
+  const q = { ...q0 };
+  if ((q.type === 'mc' || q.type === 'multi') && !q.keep) { const perm = shuffle(q.opts.map((_, i) => i)); q.opts = perm.map(i => q0.opts[i]); q.ans = q.type === 'mc' ? perm.indexOf(q0.ans) : q0.ans.map(a => perm.indexOf(a)); }
+  if (q.type === 'match') q.rights = shuffle(q.pairs.map(p => p[1]));
+  if (q.type === 'order') { let p; do { p = shuffle(q.steps.map((_, i) => i)); } while (p.every((v, i) => v === i)); q.init = p; }
+  return q;
+}
+function initState(q) { return { mc: { sel: null }, multi: { sel: [] }, num: { val: '' }, match: { sel: (q.pairs || []).map(() => '') }, order: { ord: [...(q.init || [])] }, code: { src: '', out: null }, lines: { sel: [] } }[q.type]; }
+function answered(q, st) {
+  switch (q.type) { case 'mc': return st.sel !== null; case 'multi': case 'lines': return st.sel.length > 0; case 'num': return st.val.trim() !== ''; case 'match': return st.sel.every(s => s !== ''); case 'order': return true; case 'code': return st.src.trim() !== ''; }
+}
+function grade(q, st) {
+  switch (q.type) {
+    case 'mc': return st.sel === q.ans;
+    case 'multi': return st.sel.length === q.ans.length && q.ans.every(a => st.sel.includes(a));
+    case 'num': return numOk(q, st.val);
+    case 'match': return q.pairs.every((p, i) => st.sel[i] === p[1]);
+    case 'order': return st.ord.every((v, i) => v === i);
+    case 'lines': st.res = gradeLines(q, st); return st.res.ok;
+    case 'code': { if (!st.res || st.res.src !== st.src) st.res = { src: st.src, ...codeResult(q, st.src) }; return st.res.ok; }
+  }
+}
+// partial credit: share of the parts that are right (code and bug hunts grade themselves; num and mc are all-or-nothing)
+const partOf = (q, st) => q.type === 'match' ? q.pairs.filter((p, i) => st.sel[i] === p[1]).length / q.pairs.length
+  : q.type === 'order' ? st.ord.filter((v, i) => v === i).length / st.ord.length
+  : q.type === 'multi' ? Math.max(0, (st.sel.filter(a => q.ans.includes(a)).length - st.sel.filter(a => !q.ans.includes(a)).length) / q.ans.length) : 0;
+const fracOf = it => it.revealed ? 0 : it.ok ? 1 : it.st.res && typeof it.st.res.frac === 'number' ? it.st.res.frac : partOf(it.q, it.st);
+const fmtPts = x => String(Math.round(x * 4) / 4);
+const sessScore = () => `${fmtPts(sess.items.filter(x => x.locked).reduce((a, x) => a + fracOf(x), 0))}/${sess.items.filter(x => x.locked).length} ✓`;
+const TYPE_LABEL = { mc: 'Multiple choice', multi: 'Select all that apply', num: 'Short answer', match: 'Match', order: 'Put in order', lines: 'Find the bugs' };
+const typeLabel = q => q.type === 'code' ? q.label || (q.seq ? 'Write the sequence' : 'Write the answer') : q.two && q.opts[0] === 'True' ? 'True or false' : TYPE_LABEL[q.type];
+function explain(q, st) {
+  let h = '';
+  if (q.type === 'num') h += `<p><strong>Answer: <code>${esc(q.ans)}${q.unit ? ' ' + esc(q.unit) : ''}</code></strong></p>`;
+  if (q.type === 'lines') h += (st ? `<p><strong>You found ${st.res.hits} of ${q.ans.length}${st.res.wrong ? ` and marked ${st.res.wrong} line${st.res.wrong > 1 ? 's' : ''} that ${st.res.wrong > 1 ? 'aren’t bugs' : 'isn’t a bug'}` : ''}: about ${(Math.round(st.res.frac * 3 * 4) / 4)} / 3.</strong></p>` : '') +
+    q.notes.map(({ n, ...c }) => `<p><b>Line ${n + 1}:</b> <code class="wrapc">${esc([].concat(c.bad)[c.at || 0].trim())}</code><br>${esc(c.why)} Fix: <code class="wrapc">${esc(c.fix)}</code></p>`).join('');
+  if (q.type === 'code' && st) { grade(q, st); h += `<p><strong>${st.res.ok ? 'Checker:' : 'Checker says:'}</strong></p><div class="runout ${st.res.ok ? '' : 'err'}">${esc(st.res.msg)}</div>`; }
+  if (q.type === 'code') h += '<p>One correct answer:</p>' + P(q.ref);
+  if (q.exp) h += `<p>${q.exp}</p>`;
+  if (q.type === 'order') h += '<p>Correct order:</p>' + P(q.steps.join('\n'));
+  return h;
+}
+
+/* ================= renderers ================= */
+function renderBody(q, st, el, locked, onChange) {
+  const ok = locked ? grade(q, st) : null; const L = 'ABCDEFGH';
+  if (q.type === 'mc' || q.type === 'multi') {
+    const isM = q.type === 'multi';
+    el.innerHTML = `<div class="opts ${q.two ? 'two' : ''}">` + q.opts.map((o, i) => {
+      const chosen = isM ? st.sel.includes(i) : st.sel === i; const correct = isM ? q.ans.includes(i) : q.ans === i;
+      let cls = chosen ? 'sel' : ''; if (locked) cls = correct ? (chosen || !isM ? 'right' : 'missed') : (chosen ? 'wrong' : '');
+      return `<button class="opt ${cls}" data-i="${i}" ${locked ? 'disabled' : ''}><span class="key">${isM ? (chosen ? '✓' : '') : L[i]}</span><span class="otext">${o}</span></button>`;
+    }).join('') + '</div>' + (isM && !locked ? '<p class="hint">Select every correct option, then check.</p>' : '') + (isM && locked ? '<p class="hint">Dashed green = a correct option you missed.</p>' : '');
+    if (!locked) $$('.opt', el).forEach(b => b.onclick = () => { const i = +b.dataset.i; if (isM) st.sel = st.sel.includes(i) ? st.sel.filter(x => x !== i) : [...st.sel, i]; else st.sel = i; renderBody(q, st, el, false, onChange); onChange(); });
+  } else if (q.type === 'num') {
+    el.innerHTML = `<div class="row"><input class="fill ${locked ? (ok ? 'right' : 'wrong') : ''}" id="num-input" autocomplete="off" inputmode="decimal" placeholder="number" value="${esc(st.val)}" ${locked ? 'disabled' : ''}><span class="hint">${q.unit ? esc(q.unit) + ' · ' : ''}${Number.isInteger(q.ans) && !q.tol ? 'exact' : `within ${Math.round((q.tol ?? 0.01) * 100)}%`} · 3e8 or 3x10^8 works</span></div>`;
+    if (!locked) { const inp = $('input', el); inp.oninput = () => { st.val = inp.value; onChange(); }; setTimeout(() => inp.focus({ preventScroll: true }), 0); }
+  } else if (q.type === 'match') {
+    el.innerHTML = '<div>' + q.pairs.map((p, i) => `<div class="mrow"><div>${/[{\[\/]/.test(p[0]) ? `<code class="wrapc">${esc(p[0])}</code>` : esc(p[0])}</div><div><select data-i="${i}" id="m-${i}" class="${locked ? (st.sel[i] === p[1] ? 'right' : 'wrong') : ''}" ${locked ? 'disabled' : ''}><option value="">Choose…</option>` +
+      q.rights.map(r => `<option ${st.sel[i] === r ? 'selected' : ''}>${esc(r)}</option>`).join('') + `</select>${locked && st.sel[i] !== p[1] ? `<div class="fix">✓ ${esc(p[1])}</div>` : ''}</div></div>`).join('') + '</div>';
+    if (!locked) $$('select', el).forEach(s => s.onchange = () => { st.sel[+s.dataset.i] = s.value; onChange(); });
+  } else if (q.type === 'order') {
+    el.innerHTML = '<ol class="olist">' + st.ord.map((si, pos) => `<li class="oitem ${locked ? (si === pos ? 'right' : 'wrong') : ''}"><span class="pos">${pos + 1}</span><span class="otext">${esc(q.steps[si])}</span>` +
+      (locked ? '' : `<span class="mv"><button data-p="${pos}" data-d="-1" ${pos === 0 ? 'disabled' : ''} aria-label="Move up">↑</button><button data-p="${pos}" data-d="1" ${pos === st.ord.length - 1 ? 'disabled' : ''} aria-label="Move down">↓</button></span>`) + '</li>').join('') + '</ol>';
+    if (!locked) $$('.mv button', el).forEach(b => b.onclick = () => { const p = +b.dataset.p, d = +b.dataset.d; [st.ord[p], st.ord[p + d]] = [st.ord[p + d], st.ord[p]]; renderBody(q, st, el, false, onChange); onChange(); });
+  } else if (q.type === 'lines') {
+    el.innerHTML = `<div class="codepick" role="group" aria-label="Program lines">${q.lines.map((l, i) => { const ch = st.sel.includes(i), bug = q.ans.includes(i);
+      const cls = locked ? (bug ? (ch ? 'right' : 'missed') : (ch ? 'wrong' : '')) : (ch ? 'sel' : '');
+      return `<button class="cl ${cls}" data-i="${i}" aria-pressed="${ch}" ${locked ? 'disabled' : ''}><span class="lnum">${i + 1}</span><span class="lt">${esc(l) || ' '}</span></button>`; }).join('')}</div>
+      <p class="hint">${locked ? 'Green = bug you found. Dashed = bug you missed. Red = not a bug.' : 'Click a line to mark it as an error (click again to unmark). Marks: +0.5 per bug found, −0.5 per line that isn’t a bug.'}</p>`;
+    if (!locked) $$('.cl', el).forEach(b => b.onclick = () => { const i = +b.dataset.i; st.sel = st.sel.includes(i) ? st.sel.filter(x => x !== i) : [...st.sel, i]; b.classList.toggle('sel'); b.setAttribute('aria-pressed', st.sel.includes(i)); onChange(); });
+  } else if (q.type === 'code') {
+    el.innerHTML = `<div class="editor"><div class="ebar"><span>${q.seq ? 'Items separated by spaces' : 'Your answer'}</span><span>${locked ? 'submitted' : 'type your answer'}</span></div>
+      <textarea class="code" id="code-ed" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="${esc(q.ph || (q.seq ? 'e.g. 4 1 3' : ''))}" ${locked ? 'disabled' : ''}>${esc(st.src)}</textarea></div>
+      <div data-out></div>`;
+    const out = $('[data-out]', el); if (st.out) out.innerHTML = st.out;
+    if (!locked) {
+      const ta = $('textarea', el);
+      ta.oninput = () => { st.src = ta.value; onChange(); };
+      ta.onkeydown = e => { if (e.key === 'Tab') { e.preventDefault(); const s = ta.selectionStart; ta.setRangeText('  ', s, ta.selectionEnd, 'end'); st.src = ta.value; onChange(); } };
+    }
+  }
+}
+
+/* ================= app ================= */
+const app = $('#app');
+const settings = Object.assign({ len: 15, feedback: 'instant', topics: [...TOPIC_KEYS] }, store.get(COURSE.key + '-settings', {}));
+settings.topics = settings.topics.filter(t => TOPICS[t]);
+const saveSettings = () => store.set(COURSE.key + '-settings', settings);
+let hist = store.get(COURSE.key + '-history', {});
+function record(topic, frac) { const h = hist[topic] || { c: 0, n: 0 }; h.n++; h.c += +frac; hist[topic] = h; store.set(COURSE.key + '-history', hist); }
+let sess = null, timer = null;
+const wrap = (q, sec, marks) => { const p = prep(q); return { q: p, st: initState(p), locked: false, ok: null, sec, marks: marks || q.marks || 1 }; };
+function buildQueue(topics, n) {
+  const bank = shuffle(BANK.filter(q => topics.includes(q.topic)));
+  const genTopics = topics.filter(t => GEN[t]); const out = [];
+  if (n === 'all') { out.push(...bank); genTopics.forEach(t => GEN[t].forEach(g => out.push(g(), g()))); }
+  else {
+    const nGen = genTopics.length ? Math.round(n * 0.4) : 0;
+    const byTopic = {}; bank.forEach(q => (byTopic[q.topic] = byTopic[q.topic] || []).push(q));
+    const keys = shuffle(Object.keys(byTopic)); let k = 0;
+    while (out.length < n - nGen && keys.some(t => byTopic[t].length)) { const t = keys[k++ % keys.length]; if (byTopic[t].length) out.push(byTopic[t].pop()); }
+    let g = 0; const gt = shuffle(genTopics);
+    while (out.length < n && gt.length) { const t = gt[g++ % gt.length]; out.push(pick(GEN[t])()); }
+  }
+  return shuffle(out).map(q => wrap(q));
+}
+function buildMock() {
+  return MOCK.flatMap(p => { const pool = shuffle(BANK.filter(p.from || (q => q.topic === p.topic)));
+    return Array.from({ length: p.n || 1 }, (_, i) => p.gen ? pick(GEN[p.gen])() : pool[i]).filter(Boolean).map(q => wrap(q, p.sec, p.marks)); });
+}
+let labPool = [];
+function labItem() {
+  const gens = Object.values(GEN).flat();
+  if (gens.length && Math.random() < 0.7) return wrap(pick(gens)());
+  if (!labPool.length) labPool = shuffle(BANK.filter(q => q.type === 'code' || q.type === 'lines' || q.type === 'num')); if (!labPool.length) labPool = shuffle(BANK);
+  return wrap(labPool.pop());
+}
+function startSession(mode, topic) {
+  let items;
+  if (mode === 'mock') items = buildMock();
+  else if (mode === 'topic') items = buildQueue([topic], settings.len);
+  else if (mode === 'drill') items = buildQueue(settings.topics.length ? settings.topics : TOPIC_KEYS, settings.len);
+  else items = [labItem()];
+  sess = { mode, topic, items, i: 0, exam: mode !== 'lab' && settings.feedback === 'end', start: Date.now(), done: false };
+  renderQuiz(); window.scrollTo(0, 0);
+}
+function retryMissed() {
+  const missed = sess.items.filter(it => !it.ok).map(it => wrap(it.q, it.sec, it.marks));
+  if (!missed.length) return;
+  sess = { mode: 'retry', items: shuffle(missed), i: 0, exam: false, start: Date.now(), done: false };
+  renderQuiz(); window.scrollTo(0, 0);
+}
+const REFERENCE = () => REF_HTML ? `<details class="ref"><summary>Quick reference: formulas and rules</summary><div class="refbody">${REF_HTML}</div></details>` : '';
+function renderHome() {
+  clearInterval(timer);
+  const seg = (key, vals) => `<div class="seg" role="group">` + vals.map(([v, l]) => `<button data-set="${key}" data-v="${v}" aria-pressed="${String(settings[key]) === String(v)}">${l}</button>`).join('') + '</div>';
+  const pct = t => hist[t] && hist[t].n ? Math.round(100 * hist[t].c / hist[t].n) : null;
+  const nextT = TOPIC_KEYS.find(t => !hist[t] || hist[t].n < 5 || pct(t) < 75);
+  app.innerHTML = `
+  <header class="hero">
+    <div class="eyebrow">${COURSE.eyebrow}</div>
+    <h1>${COURSE.title}<span class="reg" aria-hidden="true">${COURSE.badge}</span></h1>
+    <p class="lede">${COURSE.lede}</p>
+  </header>
+  <section class="modes">
+    <button class="mode primary" data-mode="mock"><h3>Mock exam</h3><p>${COURSE.mockDesc}</p><span class="go">Start →</span></button>
+    <button class="mode" data-mode="drill"><h3>Topic drill</h3><p>Mix the steps you tick below.</p><span class="go">Start drill →</span></button>
+    <button class="mode" data-mode="lab"><h3>Practice lab</h3><p>${COURSE.labDesc}</p><span class="go">Open lab →</span></button>
+  </section>
+  <section class="panel settings">
+    <div class="row"><span class="lbl">Drill length</span>${seg('len', [[10, '10'], [15, '15'], [30, '30'], ['all', 'Everything']])}</div>
+    <div class="row"><span class="lbl">Feedback</span>${seg('feedback', [['instant', 'After each question'], ['end', 'At the end (exam)']])}</div>
+  </section>
+  <section class="panel">
+    <div class="toprow"><h2>Study path</h2><span><button class="link" data-act="allt">Select all</button> · <button class="link" data-act="reset">Reset progress</button></span></div>
+    <p class="hint" style="margin-bottom:10px">Go top to bottom. Practice drills one step; a step is done at 75%+ over 5 or more questions. Tick boxes and use Topic drill to mix steps.</p>
+    <div class="path">${TOPIC_KEYS.map((t, i) => { const p = pct(t); const on = settings.topics.includes(t);
+      return `<div class="topic ${on ? 'on' : ''}"><button class="tg" data-t="${t}" aria-pressed="${on}" aria-label="Include ${TOPICS[t]} in Topic drill">${on ? '✓' : ''}</button>
+        <div class="tmain"><span class="tn"><span class="step">${i + 1}</span>${TOPICS[t]}${t === nextT ? '<span class="next">Next up</span>' : ''}</span><span class="why">${WHY[t]}</span>
+        <span class="meter"><span class="bar"><i style="width:${p ?? 0}%"></i></span>${p === null ? 'not tried' : `${p}% of ${hist[t].n}`}</span></div>
+        <button class="go-t" data-go="${t}">Practice →</button></div>`; }).join('')}</div>
+  </section>
+  ${REFERENCE()}`;
+  $$('.mode', app).forEach(b => b.onclick = () => startSession(b.dataset.mode));
+  $$('[data-set]', app).forEach(b => b.onclick = () => { const v = b.dataset.v; settings[b.dataset.set] = isNaN(+v) ? v : +v; saveSettings(); renderHome(); });
+  $$('.go-t', app).forEach(b => b.onclick = () => startSession('topic', b.dataset.go));
+  $$('.tg', app).forEach(b => b.onclick = () => { const t = b.dataset.t; settings.topics = settings.topics.includes(t) ? settings.topics.filter(x => x !== t) : [...settings.topics, t]; saveSettings(); renderHome(); });
+  $('[data-act="allt"]', app).onclick = () => { settings.topics = [...TOPIC_KEYS]; saveSettings(); renderHome(); };
+  const rs = $('[data-act="reset"]', app);
+  rs.onclick = () => { if (rs.dataset.armed) { hist = {}; store.set(COURSE.key + '-history', hist); renderHome(); } else { rs.dataset.armed = 1; rs.textContent = 'Tap again to clear'; } };
+}
+const fmtTime = ms => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+function renderQuiz() {
+  const it = sess.items[sess.i]; const n = sess.items.length; const lab = sess.mode === 'lab';
+  app.innerHTML = `
+  <div class="qbar">
+    <div class="top"><button class="ghost" id="endBtn">${sess.exam ? 'Submit early' : 'End'}</button>
+      <div class="qprog">${lab ? `Lab · item ${sess.i + 1}` : `Question ${sess.i + 1} of ${n}`}</div>
+      <div class="qstat" id="qstat">${sess.exam ? fmtTime(Date.now() - sess.start) : sessScore()}</div></div>
+    ${lab ? '' : `<div class="track"><i style="width:${100 * (sess.i + (it.locked ? 1 : 0)) / n}%"></i></div>`}
+    ${sess.exam ? `<div class="dots">${sess.items.map((x, i) => `<button data-j="${i}" class="${answered(x.q, x.st) ? 'ans' : ''} ${i === sess.i ? 'cur' : ''}" aria-label="Go to question ${i + 1}">${i + 1}</button>`).join('')}</div>` : ''}
+  </div>
+  <article class="qcard">
+    <div class="qmeta">${it.sec ? `<span class="qtype">${it.sec}</span>` : ''}<span class="chip">${TOPICS[it.q.topic]}</span><span class="qtype">${typeLabel(it.q)}${it.q.gen ? ' · generated' : ''}${it.marks > 1 ? ` · ${it.marks} marks` : ''}</span></div>
+    <div class="prompt">${it.q.q}</div>
+    <div class="qbody" id="qbody"></div>
+    <div id="fb"></div>
+  </article>
+  <div class="actions">
+    <div class="l">${sess.exam && sess.i > 0 ? '<button class="btn sec" id="backBtn">← Back</button>' : ''}${!sess.exam && !it.locked ? '<button class="btn sec" id="revealBtn">Show answer</button>' : ''}</div>
+    <div class="r"><button class="btn" id="primary"></button></div>
+  </div>
+  <p class="hint" style="margin-top:10px">${it.q.type === 'code' ? 'Type your answer, then use Check.' : it.q.type === 'lines' ? 'Click the lines with errors, then Check.' : `Keys: 1–${Math.max(2, (it.q.opts || []).length)} pick an option · Enter ${sess.exam ? 'next' : 'check / next'}`}</p>`;
+  const body = $('#qbody'), prim = $('#primary');
+  const update = () => {
+    if (sess.exam) { prim.textContent = sess.i === n - 1 ? 'Submit quiz' : 'Next →'; prim.disabled = false; const d = $(`.dots [data-j="${sess.i}"]`); if (d) d.classList.toggle('ans', answered(it.q, it.st)); return; }
+    if (!it.locked) { prim.textContent = 'Check'; prim.disabled = !answered(it.q, it.st); }
+    else { prim.textContent = lab ? 'Next item →' : sess.i === n - 1 ? 'See results' : 'Next →'; prim.disabled = false; }
+  };
+  const showFeedback = () => { const f = fracOf(it); $('#fb').innerHTML = `<div class="feedback ${it.ok ? 'ok' : 'bad'}"><div class="verdict">${it.ok ? 'Correct' : it.revealed ? 'Answer' : f > 0 ? `Partly right · ${Math.round(f * 100)}% of the parts` : 'Not quite'}</div>${explain(it.q, it.revealed ? null : it.st)}</div>`; };
+  renderBody(it.q, it.st, body, it.locked, update);
+  if (it.locked) showFeedback();
+  update();
+  const lock = () => {
+    it.locked = true; it.ok = it.revealed ? false : grade(it.q, it.st); record(it.q.topic, fracOf(it));
+    renderBody(it.q, it.st, body, true, update); showFeedback(); update(); $('#revealBtn')?.remove();
+    const s = $('#qstat'); if (s) s.textContent = sessScore();
+    $('#fb').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
+  };
+  prim.onclick = () => {
+    if (sess.exam) { if (sess.i === n - 1) return finish(); sess.i++; renderQuiz(); return window.scrollTo(0, 0); }
+    if (!it.locked) return lock();
+    if (lab) { sess.items.push(labItem()); sess.i++; renderQuiz(); return window.scrollTo(0, 0); }
+    if (sess.i === n - 1) return finish();
+    sess.i++; renderQuiz(); window.scrollTo(0, 0);
+  };
+  const rv = $('#revealBtn'); if (rv) rv.onclick = () => { it.revealed = true; lock(); };
+  const bk = $('#backBtn'); if (bk) bk.onclick = () => { sess.i--; renderQuiz(); };
+  $$('.dots button').forEach(b => b.onclick = () => { sess.i = +b.dataset.j; renderQuiz(); });
+  $('#endBtn').onclick = () => finish();
+  clearInterval(timer);
+  if (sess.exam) timer = setInterval(() => { const s = $('#qstat'); if (s) s.textContent = fmtTime(Date.now() - sess.start); }, 1000);
+}
+document.addEventListener('keydown', e => {
+  if (!sess || sess.done || !$('#primary')) return;
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'textarea') return;
+  if (e.key === 'Enter' && tag !== 'select' && tag !== 'button' && tag !== 'summary') { const p = $('#primary'); if (!p.disabled) { e.preventDefault(); p.click(); } return; }
+  if (tag === 'input' || tag === 'select' || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (/^[1-9]$/.test(e.key)) { const b = $$('#qbody .opt')[+e.key - 1]; if (b && !b.disabled) b.click(); }
+});
+function finish() {
+  clearInterval(timer);
+  if (sess.mode === 'lab') sess.items = sess.items.filter(it => it.locked);
+  sess.items.forEach(it => { if (!it.locked) { it.locked = true; it.ok = grade(it.q, it.st); if (answered(it.q, it.st) || sess.exam) record(it.q.topic, fracOf(it)); } });
+  sess.done = true; sess.end = Date.now(); renderResults(false);
+}
+function renderResults(onlyMissed) {
+  const items = sess.items, n = items.length, c = items.filter(x => x.ok).length;
+  const got = items.reduce((s, it) => s + fracOf(it) * it.marks, 0), max = items.reduce((s, it) => s + it.marks, 0);
+  const pct = max ? Math.round(100 * got / max) : 0, R = 52, Cc = 2 * Math.PI * R;
+  const byT = {}; items.forEach(it => { const b = byT[it.q.topic] = byT[it.q.topic] || { c: 0, n: 0 }; b.n++; b.c += fracOf(it); });
+  const msg = n === 0 ? 'No questions answered yet.' : pct >= 85 ? 'Exam-ready on this set.' : pct >= 60 ? 'Solid base. Review the misses below, then retry them.' : 'Read through the explanations below, then retry the missed ones.';
+  const cls = p => p >= 80 ? 'hi' : p >= 55 ? 'mid' : 'low';
+  app.innerHTML = `
+  <header class="res-head">
+    <svg class="ring" viewBox="0 0 120 120" role="img" aria-label="Score ${pct} percent">
+      <circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--line)" stroke-width="10"></circle>
+      <circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--${pct >= 80 ? 'ok' : pct >= 55 ? 'sel' : 'bad'})" stroke-width="10" stroke-linecap="round" stroke-dasharray="${Cc * pct / 100} ${Cc}" transform="rotate(-90 60 60)"></circle>
+      <text x="60" y="68" text-anchor="middle" font-size="28">${pct}%</text></svg>
+    <div><h1>${sess.mode === 'mock' ? `${Math.round(got * 4) / 4} / ${max} marks` : `${fmtPts(items.reduce((a, it) => a + fracOf(it), 0))} of ${n} correct`}</h1><p>${c < n ? `${c} of ${n} fully right; the rest get partial credit for the parts you got. ` : ''}${msg} Time: ${fmtTime(sess.end - sess.start)}.</p></div>
+  </header>
+  <div class="actions" style="margin-top:0"><div class="l"><button class="btn" id="again">New ${sess.mode === 'lab' ? 'lab session' : sess.mode === 'mock' ? 'mock exam' : sess.mode === 'topic' ? 'round' : 'quiz'}</button>${c < n ? `<button class="btn sec" id="retry">Retry ${n - c} missed</button>` : ''}</div><div class="r"><button class="btn sec" id="home">Home</button></div></div>
+  <section class="panel"><h2>By topic</h2><div class="tbars">${Object.keys(byT).map(t => { const b = byT[t], p = Math.round(100 * b.c / b.n);
+    return `<div class="tbar"><span>${TOPICS[t]}</span><span class="bar big"><i class="${cls(p)}" style="width:${p}%"></i></span><span class="num">${b.c}/${b.n}</span></div>`; }).join('')}</div></section>
+  <section class="panel"><div class="toprow"><h2>Review</h2><div class="seg"><button id="fAll" aria-pressed="${!onlyMissed}">All</button><button id="fMiss" aria-pressed="${onlyMissed}">Missed only</button></div></div><div class="review" id="review"></div></section>`;
+  const rv = $('#review');
+  items.forEach((it, i) => {
+    if (onlyMissed && it.ok) return;
+    const card = document.createElement('article'); card.className = 'qcard';
+    card.innerHTML = `<div class="rv-head"><div class="qmeta"><span class="qtype">Q${i + 1}${it.marks > 1 ? ` · ${Math.round(fracOf(it) * it.marks * 4) / 4}/${it.marks}` : ''}</span><span class="chip">${TOPICS[it.q.topic]}</span></div><span class="badge ${it.ok ? 'ok' : 'bad'}">${it.ok ? 'Correct' : answered(it.q, it.st) ? (fracOf(it) > 0 ? 'Partial' : 'Missed') : 'Unanswered'}</span></div><div class="prompt">${it.q.q}</div><div class="qbody"></div><div class="feedback neutral">${explain(it.q, answered(it.q, it.st) ? it.st : null)}</div>`;
+    rv.appendChild(card); renderBody(it.q, it.st, $('.qbody', card), true, () => {});
+  });
+  if (!rv.children.length) rv.innerHTML = '<p class="muted">Nothing missed. Nice work.</p>';
+  $('#again').onclick = () => startSession(sess.mode === 'retry' ? 'mock' : sess.mode, sess.topic);
+  const rt = $('#retry'); if (rt) rt.onclick = retryMissed;
+  $('#home').onclick = () => { sess = null; renderHome(); window.scrollTo(0, 0); };
+  $('#fAll').onclick = () => renderResults(false); $('#fMiss').onclick = () => renderResults(true);
+  window.scrollTo(0, 0);
+}
+renderHome();
+window.__md = { fracOf, BANK, GEN, MOCK, prep, initState, grade, codeResult, explain, buildMock, labItem, parseNum, numOk };
+
+})();
+</script>

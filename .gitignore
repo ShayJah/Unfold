@@ -1,0 +1,4 @@
+.venv/
+notes/
+*.pdf
+.DS_Store
