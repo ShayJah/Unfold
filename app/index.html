@@ -24,6 +24,7 @@
 *{box-sizing:border-box}
 html{background:var(--paper)}
 body{background:radial-gradient(900px 520px at 105% -8%,var(--wash),transparent 62%),radial-gradient(700px 420px at -10% 108%,var(--wash),transparent 60%),var(--paper);background-attachment:fixed;color:var(--ink);font:16px/1.6 var(--f-text);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;min-height:100vh}
+.wrap.wide{max-width:1140px}
 .wrap{max-width:720px;margin:0 auto;padding-block:28px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 button,input,textarea,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
@@ -160,6 +161,33 @@ textarea:focus{outline:2px solid var(--ink);outline-offset:1px}
 .mt .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mt.focus .nm{font-weight:600}
 .mt .pc{text-align:right;color:var(--muted);font-size:13px}
+.mt.prov .bar i{opacity:.4} .mt.weak .bar i{background:var(--bad)!important} .mt.weak .pc{color:var(--bad)}
+.mt .nd{grid-column:1/-1;margin-top:-6px;font-size:12.5px;color:var(--muted)}
+.ready-sum{font:400 22px var(--f-display)}
+.qlayout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);max-height:calc(100vh - 32px);overflow:auto;display:grid;gap:16px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.side .brand{margin-bottom:2px}
+.overall{display:grid;gap:8px}
+.overall b{font:400 34px/1 var(--f-display)}
+.stack{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line)}
+.stack i{display:block;height:100%}
+.side .s-ready{background:var(--ok)} .side .s-close{background:var(--apricot)} .side .s-weak{background:var(--bad)} .side .s-building{background:var(--muted);opacity:.45} .side .s-new{background:var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px} .legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.tlist{display:grid;gap:2px;margin:0;padding:0;list-style:none}
+.tlist button{width:100%;display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:4px 10px;align-items:center;text-align:left;border:0;background:none;padding:9px 8px;border-radius:9px;cursor:pointer}
+.tlist button:hover{background:var(--tint)} .tlist button[aria-current="true"]{background:var(--tint)}
+.tlist .dot{width:10px;height:10px;border-radius:50%}
+.tlist .nm{font-size:14.5px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tlist .pc{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tlist .bar{grid-column:2/4;height:4px}
+.side-actions{display:flex;gap:8px;flex-wrap:wrap}
+.qmain{display:grid;gap:16px;min-width:0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.side details summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none}
+.side details summary::-webkit-details-marker{display:none}
+@media (min-width:900px){.side details{display:contents}.side details summary{display:none}}
+@media (max-width:899px){.qlayout{grid-template-columns:1fr;gap:14px}.side{position:static;max-height:none;padding:14px;gap:10px}.side > .brand,.side > p.fine{display:none}.overall b{font-size:24px}.side-actions .btn{padding:6px 10px;font-size:13.5px}}
 .mt .bar i{background:var(--muted)} .mt.focus .bar i{background:var(--ink)}
 .hi .bar i{background:var(--ok)!important}
 .score{font:400 clamp(46px,10vw,72px)/1 var(--f-display)}
@@ -239,7 +267,7 @@ const PDF_TOKENS_PER_PAGE = 1500; // rough cost of one PDF page sent to Claude a
 
 /* ================= screens ================= */
 function go(screen) { S.screen = screen; render(); window.scrollTo(0, 0); }
-function render() { ({ upload: renderUpload, parse: renderParse, quiz: renderQuiz, done: renderDone })[S.screen](); }
+function render() { app.classList.toggle('wide', S.screen === 'quiz'); ({ upload: renderUpload, parse: renderParse, quiz: renderQuiz, done: renderDone })[S.screen](); }
 
 function renderUpload() {
   const n = S.files.length;
@@ -329,7 +357,7 @@ Slides:
 ${outline}`, { modelTier: 'default' });
     const valid = new Set(S.pages.map(p => p.ref));
     S.topics = (Array.isArray(res) ? res : []).filter(t => t && t.name).map((t, i) => ({ id: 't' + i, name: String(t.name).slice(0, 80), why: String(t.why || '').slice(0, 160),
-      refs: (Array.isArray(t.refs) ? t.refs : []).map(String).filter(r => valid.has(r)), on: true, m: null, n: 0, got: 0, level: 1, streak: 0 })).slice(0, 12);
+      refs: (Array.isArray(t.refs) ? t.refs : []).map(String).filter(r => valid.has(r)), on: true, log: [], n: 0, level: 1, streak: 0 })).slice(0, 12);
     if (!S.topics.length) throw { code: 'invalid_json' };
     P.detail[2] = `${S.topics.length} topics`; P.step = 3; renderParse();
   } catch (e) { S.parse.fail = e.msg || errText(e); renderParse(); }
@@ -350,7 +378,8 @@ function renderParse() {
       ${P.step >= 2 && P.before ? `<div class="save-big">${kfmt(P.before)}+ tokens → <mark>${kfmt(P.after)}</mark></div><p class="fine">That’s what Claude reads instead of your PDFs, about ${Math.max(1, Math.round(P.before / Math.max(P.after, 1)))}× less.</p>` : ''}
       ${P.fail ? `<p class="note bad">${esc(P.fail)}</p><div class="row">${P.step >= 2 ? '<button class="btn" id="retry">Try again</button>' : ''}<button class="btn ghost" id="save">Save the notes file</button>${window.claude ? '' : `<a class="btn" href="${LIVE_URL}" target="_blank" rel="noopener">Open in claude.ai</a>`}</div>` : ''}
     </div>
-    ${ready ? `<div class="topics">${S.topics.map(t => `<div class="tp ${t.on ? '' : 'off'}"><button class="box" data-t="${t.id}" aria-pressed="${t.on}" aria-label="Include ${esc(t.name)} in the mix">${t.on ? '✓' : ''}</button><span class="n">${esc(t.name)}</span><button class="btn ghost small" data-go="${t.id}">Practise →</button><span class="w">${esc(t.why)}${t.n ? ` · ${Math.round(t.m * 100)}% over ${t.n}` : ''}</span></div>`).join('')}</div>
+    ${ready && S.topics.some(t => t.n) ? `<p class="ready-sum">${readyCount(S.topics)} of ${S.topics.length} topics ready for the exam</p>` : ''}
+    ${ready ? `<div class="topics">${S.topics.map(t => `<div class="tp ${t.on ? '' : 'off'}"><button class="box" data-t="${t.id}" aria-pressed="${t.on}" aria-label="Include ${esc(t.name)} in the mix">${t.on ? '✓' : ''}</button><span class="n">${esc(t.name)}</span><button class="btn ghost small" data-go="${t.id}">Practise →</button><span class="w">${esc(t.why)}${t.n ? ` · <b>${esc(readiness(t).label)}</b>. ${esc(readiness(t).need)}` : ''}</span></div>`).join('')}</div>
       <div class="spread"><div class="row"><button class="btn ghost" id="save">Save the notes file</button><button class="btn ghost" id="savepack">Save course pack</button></div><button class="btn" id="go" ${S.topics.some(t => t.on) ? '' : 'disabled'}>Mix ticked topics</button></div>` : ''}
   </section>`;
   $('#back').onclick = () => go('upload');
@@ -378,7 +407,7 @@ function loadPack(p) {
   if (!p || p.schema !== PACK || !Array.isArray(p.pages) || !Array.isArray(p.topics)) throw new Error('not a pack');
   const saved = store.get('unfold-progress:' + p.name) || {};
   Object.assign(S, { bank: Array.isArray(p.bank) ? p.bank : [], seen: new Set(saved.__seen || []), pack: p.name, subject: SUBJECTS[p.subject] ? p.subject : 'other', topicsText: p.topicsText || '', docs: p.docs || [], pages: p.pages, quiz: null,
-    topics: p.topics.map(t => ({ m: null, n: 0, got: 0, level: 1, streak: 0, ...t, ...(saved[t.id] || {}) })) });
+    topics: p.topics.map(t => { const sv = saved[t.id] || {}; return { n: 0, level: 1, streak: 0, ...t, ...sv, log: Array.isArray(sv.log) ? sv.log : [] }; }) });
   const st = p.stats || {}, nd = S.docs.filter(d => !d.skipped).length;
   S.parse = { step: 3, fail: null, pagesDone: st.pagesTotal, pagesTotal: st.pagesTotal || S.pages.length, before: st.before || 0, after: st.after || 0,
     detail: [`${st.pagesTotal || S.pages.length} pages from ${nd} PDF${nd === 1 ? '' : 's'}`, st.before ? `${kfmt(st.before)}+ → ${kfmt(st.after)} tokens` : '', `${S.topics.length} topics · ${p.name}`, ''] };
@@ -400,11 +429,27 @@ async function saveFile(ev, name, data) {
 
 /* ================= adaptive quiz ================= */
 // mastery: moving average of scores per topic; level 1–3 goes up after strong answers, down after weak ones
-const ALPHA = 0.4;
+// a topic only gets a score after MIN_N answers; the score is the last WINDOW answers weighted by level,
+// and "ready" also needs HARD_NEED correct answers at the topic's hardest level
+const MIN_N = 8, WINDOW = 12, READY = 0.8, HARD_NEED = 2, WEIGHT = { 1: 1, 2: 2, 3: 3 };
+const topLevel = t => { const ls = S.bank.filter(q => q.topic === t.id).map(q => q.level); return ls.length ? Math.max(...ls) : 3; };
+function readiness(t) {
+  const all = t.log || [], log = all.slice(-WINDOW), n = all.length, top = topLevel(t);
+  const hard = log.filter(a => a.l >= top && a.s >= 0.8).length, wsum = log.reduce((a, x) => a + (WEIGHT[x.l] || 1), 0);
+  const pct = wsum ? log.reduce((a, x) => a + x.s * (WEIGHT[x.l] || 1), 0) / wsum : null, p = Math.round(100 * pct);
+  if (!n) return { k: 'new', pct: null, prog: 0, short: 'new', label: 'Not started', need: `Answer ${MIN_N} questions to get a score` };
+  if (n < MIN_N) return { k: 'building', pct: null, prog: n / MIN_N, short: `${n}/${MIN_N}`, label: `${n} of ${MIN_N} answered`, need: `Answer ${MIN_N - n} more before it counts` };
+  if (pct < 0.6) return { k: 'weak', pct, short: p + '%', label: `Needs work · ${p}%`, need: 'Practise this topic: your recent answers are under 60%' };
+  if (pct < READY) return { k: 'close', pct, short: p + '%', label: `Getting there · ${p}%`, need: 'Get your recent answers to 80% (harder questions count more)' };
+  if (hard < HARD_NEED) return { k: 'close', pct, short: p + '%', label: `${p}% · needs harder questions`, need: `Get ${HARD_NEED - hard} more level-${top} question${HARD_NEED - hard === 1 ? '' : 's'} right` };
+  return { k: 'ready', pct, short: 'Ready', label: `Ready · ${p}%`, need: 'Keep it fresh in mixed rounds' };
+}
+const readyCount = ts => ts.filter(t => readiness(t).k === 'ready').length;
+const PICK_W = { new: 1.3, building: 1.2, weak: 1.5, close: 1, ready: 0.35 };
 const active = () => S.topics.filter(t => t.on);
 function pickTopic(avoid) {
   const ts = S.quiz.focus ? S.topics.filter(t => t.id === S.quiz.focus) : active();
-  const w = ts.map(t => (t.m === null ? 1.2 : 1.05 - t.m) * (t.id === avoid && ts.length > 1 ? 0.25 : 1));
+  const w = ts.map(t => PICK_W[readiness(t).k] * (t.id === avoid && ts.length > 1 ? 0.25 : 1));
   let r = Math.random() * w.reduce((a, b) => a + b, 0);
   for (let i = 0; i < ts.length; i++) { r -= w[i]; if (r <= 0) return ts[i]; }
   return ts[ts.length - 1];
@@ -514,13 +559,13 @@ Reply with only JSON: {"score": a number from 0 to 1, "verdict": "one short sent
 }
 function record(c) {
   const t = S.topics.find(x => x.id === c.q.topic), s = c.res.score;
-  t.m = t.m === null ? s : t.m + ALPHA * (s - t.m); t.n++; t.got += s;
+  t.log = [...(t.log || []), { s, l: c.q.level || 1 }].slice(-40); t.n = (t.n || 0) + 1;
   if (s >= 0.8) { t.streak = Math.max(0, t.streak) + 1; if (t.streak >= 2 && t.level < 3) { t.level++; t.streak = 0; } }
   else if (s < 0.5) { t.streak = Math.min(0, t.streak) - 1; if (t.level > 1) { t.level--; t.streak = 0; } }
   else t.streak = 0;
   S.quiz.history.push({ topic: t.id, q: c.q, score: s });
   if (c.q.id) S.seen.add(c.q.id);
-  if (progKey()) store.set(progKey(), { ...Object.fromEntries(S.topics.map(x => [x.id, { m: x.m, n: x.n, got: x.got, level: x.level, on: x.on }])), __seen: [...S.seen] });
+  if (progKey()) store.set(progKey(), { ...Object.fromEntries(S.topics.map(x => [x.id, { log: x.log || [], n: x.n, level: x.level, streak: x.streak, on: x.on }])), __seen: [...S.seen] });
 }
 async function check(reveal) {
   const c = S.quiz.cur; if (!c || c.locked || c.marking) return;
@@ -536,25 +581,37 @@ async function check(reveal) {
   c.marking = false; renderQuiz();
 }
 // warm the buffer for the most likely next topic while the student reads the feedback
-function prefetch() { if (S.bank.length) return; const Q = S.quiz, t = Q.focus ? S.topics.find(x => x.id === Q.focus) : active().sort((a, b) => (a.m ?? -1) - (b.m ?? -1))[0]; if (t && (Q.focus || t.id !== Q.lastTopic)) ensure(t).catch(() => {}); }
+function prefetch() { if (S.bank.length) return; const Q = S.quiz, t = Q.focus ? S.topics.find(x => x.id === Q.focus) : active().sort((a, b) => PICK_W[readiness(b).k] - PICK_W[readiness(a).k])[0]; if (t && (Q.focus || t.id !== Q.lastTopic)) ensure(t).catch(() => {}); }
 
 function renderQuiz() {
   if (S.screen !== 'quiz') return;
   const Q = S.quiz, c = Q.cur, h = Q.history, n = h.length, total = h.reduce((a, x) => a + x.score, 0);
   const t = c && (c.q ? S.topics.find(x => x.id === c.q.topic) : c.loading);
-  const weakest = active().filter(x => x.m !== null).sort((a, b) => a.m - b.m)[0];
+  const weakest = active().filter(x => readiness(x).k === 'weak').sort((a, b) => readiness(a).pct - readiness(b).pct)[0];
+  const shown = S.topics.filter(x => x.on || x.id === Q.focus), rs = shown.map(readiness), cnt = k => rs.filter(r => r.k === k).length;
+  const KEYS = [['ready', 'Ready'], ['close', 'Getting there'], ['weak', 'Needs work'], ['building', 'Not enough answers'], ['new', 'Not started']];
   app.innerHTML = `
-  <div class="top">${BRAND}<div class="row"><span class="qtop">${n ? `<b>${Math.round(total * 10) / 10}</b>&nbsp;/ ${n} marked` : 'First question'}</span><button class="btn ghost small" id="topics">Topics</button><button class="btn ghost small" id="end">${n ? 'Finish' : 'Back'}</button></div></div>
-  <section class="screen">
-    <article class="qcard" aria-live="polite">${quizBody(c, t)}</article>
-    <div class="card"><div class="spread"><h3 style="font-size:24px">Your topics</h3>${Q.focus ? `<div class="row"><span class="chip">Only ${esc(S.topics.find(x => x.id === Q.focus).name)}</span><button class="btn ghost small" id="mix">Mix ticked topics</button></div>` : weakest && weakest.m < 0.75 ? `<span class="chip">Mixing · most on ${esc(weakest.name)}</span>` : '<span class="chip o">Mixing ticked topics</span>'}</div>
-      <div class="mastery">${S.topics.filter(x => x.on || x.id === Q.focus).map(x => { const p = x.m === null ? null : Math.round(x.m * 100);
-        return `<div class="mt ${t && x.id === t.id ? 'focus' : ''} ${p !== null && p >= 80 ? 'hi' : ''}"><span class="nm" title="${esc(x.name)}">${esc(x.name)}</span><span class="bar"><i style="width:${p ?? 0}%"></i></span><span class="pc">${p === null ? 'new' : p + '%'}</span><button class="go" data-go="${x.id}" ${Q.focus === x.id ? 'disabled' : ''}>${Q.focus === x.id ? 'Practising' : 'Practise'}</button></div>`; }).join('')}</div>
-      <p class="fine">Mastery leans toward your recent answers. Questions get harder after two strong answers in a row and easier after a miss.</p></div>
-  </section>`;
+  <div class="qlayout">
+    <aside class="side" aria-label="Your progress">
+      ${BRAND}
+      <div class="overall"><span class="label">EXAM READINESS</span><b>${cnt('ready')} of ${shown.length}</b><span class="fine">topics ready${Q.focus ? '' : ' in this mix'}</span>
+        <div class="stack" role="img" aria-label="${KEYS.map(([k, l]) => `${cnt(k)} ${l}`).join(', ')}">${KEYS.map(([k]) => cnt(k) ? `<i class="s-${k}" style="width:${100 * cnt(k) / shown.length}%"></i>` : '').join('')}</div>
+        <div class="legend">${KEYS.filter(([k]) => cnt(k)).map(([k, l]) => `<span><i class="s-${k}"></i>${cnt(k)} ${l}</span>`).join('')}</div></div>
+      <details ${matchMedia('(min-width: 900px)').matches ? 'open' : ''}><summary>All topics ▾</summary>
+      <ul class="tlist">${shown.map((x, i) => { const r = rs[i], w = r.pct === null ? r.prog * 100 : r.pct * 100;
+        return `<li><button data-go="${x.id}" aria-current="${t && x.id === t.id}" title="${esc(r.label)}. ${esc(r.need)}"><span class="dot s-${r.k}"></span><span class="nm">${esc(x.name)}</span><span class="pc">${esc(r.short)}</span><span class="bar"><i class="s-${r.k}" style="width:${Math.round(w)}%"></i></span></button></li>`; }).join('')}</ul></details>
+      <div class="side-actions">${Q.focus ? '<button class="btn ghost small" id="mix">Mix ticked topics</button>' : ''}<button class="btn ghost small" id="topics">All topics</button><button class="btn ghost small" id="end">${n ? 'Finish' : 'Back'}</button></div>
+      <p class="fine">A topic gets a score after ${MIN_N} answers: your last ${WINDOW}, with level 1 ×1, level 2 ×2, level 3 ×3. Ready = 80%+ and ${HARD_NEED} hardest-level questions right.</p>
+    </aside>
+    <section class="qmain">
+      <div class="qhead"><span class="chip ${Q.focus ? '' : 'o'}">${Q.focus ? `Only ${esc(S.topics.find(x => x.id === Q.focus).name)}` : weakest ? `Mixing · most on ${esc(weakest.name)}` : 'Mixing ticked topics'}</span><span class="qtop">${n ? `This session <b>${Math.round(total * 10) / 10}</b>&nbsp;/ ${n}` : 'First question'}</span></div>
+      <article class="qcard" aria-live="polite">${quizBody(c, t)}</article>
+      ${t ? `<p class="note"><b>${esc(t.name)}:</b> ${esc(readiness(t).label)}. ${esc(readiness(t).need)}.</p>` : ''}
+    </section>
+  </div>`;
   $('#end').onclick = () => n ? go('done') : go('parse');
   $('#topics').onclick = () => go('parse');
-  $$('.mt [data-go]').forEach(b => b.onclick = () => practise(b.dataset.go));
+  $$('.tlist [data-go]').forEach(b => b.onclick = () => practise(b.dataset.go));
   const mx = $('#mix'); if (mx) mx.onclick = () => practise(null);
   if (!c) return;
   if (Q.err) { $('#retryq').onclick = nextQuestion; return; }
@@ -621,15 +678,17 @@ document.addEventListener('keydown', e => {
 
 function renderDone() {
   const h = S.quiz.history, n = h.length, total = h.reduce((a, x) => a + x.score, 0), pct = n ? Math.round(100 * total / n) : 0;
-  const ts = S.topics.filter(t => t.n).sort((a, b) => a.m - b.m);
+  const sess = {}; h.forEach(x => { const o = sess[x.topic] = sess[x.topic] || { n: 0, got: 0 }; o.n++; o.got += x.score; });
+  const ts = S.topics.filter(t => sess[t.id]).sort((a, b) => (readiness(a).pct ?? -1) - (readiness(b).pct ?? -1));
+  const next = S.topics.filter(t => t.on && readiness(t).k !== 'ready').sort((a, b) => PICK_W[readiness(b).k] - PICK_W[readiness(a).k])[0];
   const mins = Math.max(1, Math.round((Date.now() - S.quiz.start) / 60000));
   app.innerHTML = `
   <div class="top">${BRAND}</div>
   <section class="screen">
     <header class="hero"><p class="label">${n} question${n === 1 ? '' : 's'} · ${mins} min</p><div class="score">${pct}%</div>
-      <p class="lede">${Math.round(total * 10) / 10} of ${n} marks, counting partial credit. ${ts.length && ts[0].m < 0.6 ? `Spend your next session on <b>${esc(ts[0].name)}</b>.` : 'Nice, nothing is badly weak. Push the level up next time.'}</p></header>
-    <div class="card"><h3 style="font-size:24px">By topic</h3><div class="mastery">${ts.map(t => { const p = Math.round(100 * t.got / t.n);
-      return `<div class="mt ${p >= 80 ? 'hi' : ''}"><span class="nm">${esc(t.name)}</span><span class="bar"><i style="width:${p}%"></i></span><span class="pc">${p}% · ${t.n}</span><button class="go" data-go="${t.id}">Practise</button></div>`; }).join('') || '<p class="muted">Nothing answered yet.</p>'}</div></div>
+      <p class="lede">${Math.round(total * 10) / 10} of ${n} marks, counting partial credit. <b>${readyCount(S.topics)} of ${S.topics.length} topics ready.</b> ${next ? `Next: <b>${esc(next.name)}</b>. ${esc(readiness(next).need)}.` : 'Every ticked topic is ready. Keep it fresh with mixed rounds.'}</p></header>
+    <div class="card"><h3 style="font-size:24px">By topic</h3><div class="mastery">${ts.map(t => { const o = sess[t.id], p = Math.round(100 * o.got / o.n), r = readiness(t);
+      return `<div class="mt ${r.k === 'ready' ? 'hi' : ''} ${r.k === 'weak' ? 'weak' : ''}"><span class="nm">${esc(t.name)}</span><span class="bar"><i style="width:${p}%"></i></span><span class="pc">${p}% · ${o.n}</span><button class="go" data-go="${t.id}">Practise</button><span class="nd">This session ${p}% over ${o.n}. Overall: ${esc(r.label)}. ${esc(r.need)}.</span></div>`; }).join('') || '<p class="muted">Nothing answered yet.</p>'}</div></div>
     <div class="spread"><button class="btn ghost" id="save">Save the notes file</button><div class="row"><button class="btn ghost" id="new">New PDFs</button><button class="btn" id="more">Keep practising</button></div></div>
   </section>`;
   $('#more').onclick = () => practise(S.quiz.focus);
@@ -642,6 +701,6 @@ function renderDone() {
 sampler().then(s => { S.hasClaude = !!s; });
 render();
 fetch('pack.json').then(r => r.ok ? r.json() : null).then(p => { if (p && S.screen === 'upload' && !S.files.length) loadPack(p); }).catch(() => {});
-window.__unfold = { S, render, loadPack, setupQ, takeBank, squeeze, parseNum, mark, validQ, pickTopic, record };
+window.__unfold = { S, render, readiness, loadPack, setupQ, takeBank, squeeze, parseNum, mark, validQ, pickTopic, record };
 })();
 </script>
