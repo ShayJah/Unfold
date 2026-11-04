@@ -122,6 +122,12 @@ textarea:focus{outline:2px solid var(--ink);outline-offset:1px}
 .opts{display:grid;gap:8px}
 .opt{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer;line-height:1.45;transition:border-color .12s,background .12s}
 .opt:hover:not(:disabled){border-color:var(--ink)}
+.fig{overflow-x:auto}
+.fig svg{display:block;max-width:100%;height:auto;margin:0 auto}
+.opt > span:last-child{white-space:pre-line}
+.selfmark{display:grid;gap:8px}
+.selfmark label{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer}
+.selfmark input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--ink)}
 .opt .k{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--muted)}
 .opt.sel{border-color:var(--ink);background:var(--tint)} .opt.sel .k{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .opt.right{border-color:var(--ok);background:var(--ok-soft)} .opt.right .k{background:var(--ok);border-color:var(--ok);color:var(--paper)}
@@ -181,7 +187,7 @@ const app = $('#app');
 const LIVE_URL = 'https://claude.ai/artifact/V6E7BXJvt7WjDbUuwAQxpN';
 
 /* ================= state ================= */
-const S = { subject: 'physics', topicsText: '', files: [], pages: [], docs: [], topics: [], screen: 'upload', parse: null, quiz: null, pack: null };
+const S = { subject: 'physics', topicsText: '', files: [], pages: [], docs: [], topics: [], screen: 'upload', parse: null, quiz: null, pack: null, bank: [], seen: new Set(), hasClaude: false };
 const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 const SUBJECTS = { physics: 'Physics', dsa: 'Data Structures & Algorithms', other: 'Something else' };
 const HINTS = {
@@ -281,7 +287,7 @@ function addFiles(list) {
 /* ---------- parse: read → squeeze → find topics → pick topics ---------- */
 async function startParse() {
   S.parse = { step: 0, detail: ['', '', '', ''], fail: null, pagesDone: 0, pagesTotal: 0, before: 0, after: 0 };
-  S.pages = []; S.docs = []; S.topics = []; S.pack = null;
+  S.pages = []; S.docs = []; S.topics = []; S.pack = null; S.bank = []; S.seen = new Set();
   go('parse');
   try {
     if (!window.pdfjsLib) throw { msg: 'The PDF reader didn’t load. Check your connection and reload.' };
@@ -364,14 +370,14 @@ const notesMd = () => S.docs.filter(d => !d.skipped).map(d => {
 const saveNotes = ev => saveFile(ev, 'unfold-notes.md', notesMd());
 // a course pack = compressed notes + topics, so a course reopens without the PDFs
 const PACK = 'unfold-pack@1';
-const packOf = () => ({ schema: PACK, name: S.pack || SUBJECTS[S.subject], subject: S.subject, topicsText: S.topicsText, docs: S.docs, pages: S.pages,
+const packOf = () => ({ schema: PACK, bank: S.bank, name: S.pack || SUBJECTS[S.subject], subject: S.subject, topicsText: S.topicsText, docs: S.docs, pages: S.pages,
   stats: { pagesTotal: S.parse.pagesTotal, before: S.parse.before, after: S.parse.after }, topics: S.topics.map(({ id, name, why, refs, on }) => ({ id, name, why, refs, on })) });
 const savePack = ev => saveFile(ev, (S.pack || SUBJECTS[S.subject]).replace(/[^\w&+ -]+/g, '').trim() + '.unfold.json', JSON.stringify(packOf()));
 const progKey = () => S.pack && 'unfold-progress:' + S.pack;
 function loadPack(p) {
   if (!p || p.schema !== PACK || !Array.isArray(p.pages) || !Array.isArray(p.topics)) throw new Error('not a pack');
   const saved = store.get('unfold-progress:' + p.name) || {};
-  Object.assign(S, { pack: p.name, subject: SUBJECTS[p.subject] ? p.subject : 'other', topicsText: p.topicsText || '', docs: p.docs || [], pages: p.pages, quiz: null,
+  Object.assign(S, { bank: Array.isArray(p.bank) ? p.bank : [], seen: new Set(saved.__seen || []), pack: p.name, subject: SUBJECTS[p.subject] ? p.subject : 'other', topicsText: p.topicsText || '', docs: p.docs || [], pages: p.pages, quiz: null,
     topics: p.topics.map(t => ({ m: null, n: 0, got: 0, level: 1, streak: 0, ...t, ...(saved[t.id] || {}) })) });
   const st = p.stats || {}, nd = S.docs.filter(d => !d.skipped).length;
   S.parse = { step: 3, fail: null, pagesDone: st.pagesTotal, pagesTotal: st.pagesTotal || S.pages.length, before: st.before || 0, after: st.after || 0,
@@ -459,18 +465,30 @@ function practise(focus) {
 async function nextQuestion() {
   const Q = S.quiz; Q.err = null;
   const t = pickTopic(Q.lastTopic); Q.lastTopic = t.id;
+  const banked = takeBank(t);
+  if (banked) { Q.cur = setupQ(banked); return renderQuiz(); }
   Q.cur = { loading: t, q: null }; renderQuiz();
   try {
     await ensure(t);
     // the level may have moved since this batch was written; prefer questions at the current level
     const buf = Q.buffer[t.id]; const i = Math.max(0, buf.findIndex(q => q.level === t.level));
-    const q = buf.splice(i, 1)[0];
+    Q.cur = setupQ(buf.splice(i, 1)[0]);
+  } catch (e) { Q.cur = { loading: t, q: null }; Q.err = errText(e); }
+  renderQuiz();
+}
+// unseen questions at the topic's level first; once a topic's bank is used up it starts a new round
+function takeBank(t) {
+  const pool = S.bank.filter(q => q.topic === t.id); if (!pool.length) return null;
+  let un = pool.filter(q => !S.seen.has(q.id)); if (!un.length) { pool.forEach(q => S.seen.delete(q.id)); un = pool; }
+  const best = Math.min(...un.map(q => Math.abs(q.level - t.level)));
+  const pick = shuffle(un.filter(q => Math.abs(q.level - t.level) === best))[0];
+  return { ...JSON.parse(JSON.stringify(pick)), fromBank: true };
+}
+function setupQ(q) {
     if (q.type === 'mc' || q.type === 'multi') { const perm = shuffle(q.opts.map((_, k) => k)); const opts = perm.map(k => q.opts[k]);
       q.ans = q.type === 'mc' ? perm.indexOf(q.ans) : q.ans.map(a => perm.indexOf(a)); q.opts = opts; }
     if (q.type === 'order') { let p; do { p = shuffle(q.steps.map((_, k) => k)); } while (p.every((v, k) => v === k)); q.ord = p; }
-    Q.cur = { q, st: { sel: q.type === 'multi' ? [] : null, val: '', ord: q.ord ? [...q.ord] : null }, locked: false, res: null };
-  } catch (e) { Q.cur = { loading: t, q: null }; Q.err = errText(e); }
-  renderQuiz();
+    return { q, st: { sel: q.type === 'multi' ? [] : null, val: '', ord: q.ord ? [...q.ord] : null, ticks: [] }, locked: false, res: null };
 }
 const parseNum = s => { const t = String(s).trim().replace(/,/g, '').replace(/\s*[x×*]\s*10\s*\^?\s*/i, 'e').replace(/[a-zA-Zµ°/²³·\s]+$/, ''); return /^[-+−]?(\d+\.?\d*|\.\d+)(e[-+−]?\d+)?$/i.test(t) ? +t.replace(/−/g, '-') : NaN; };
 const answered = c => { const q = c.q, st = c.st; return q.type === 'mc' ? st.sel !== null : q.type === 'multi' ? st.sel.length > 0 : q.type === 'order' ? true : st.val.trim() !== ''; };
@@ -479,7 +497,7 @@ async function mark(c) {
   if (q.type === 'mc') return { score: +(st.sel === q.ans) };
   if (q.type === 'multi') { const hit = st.sel.filter(a => q.ans.includes(a)).length, wrong = st.sel.length - hit; return { score: Math.max(0, (hit - wrong) / q.ans.length) }; }
   if (q.type === 'order') return { score: st.ord.filter((v, k) => v === k).length / st.ord.length };
-  if (q.type === 'num') { const x = parseNum(st.val), a = +q.ans, tol = Number.isFinite(+q.tol) && +q.tol > 0 ? +q.tol : 0.02;
+  if (q.type === 'num') { const x = parseNum(st.val), a = +q.ans, tol = q.tol != null && Number.isFinite(+q.tol) && +q.tol >= 0 ? +q.tol : Number.isInteger(a) ? 0 : 0.02;
     if (isNaN(x)) return { score: 0, feedback: 'That isn’t a number Unfold can read. Write it like 12.5, 3e8 or 3x10^8.' };
     const ok = Math.abs(x - a) <= Math.abs(a) * tol + 1e-12;
     const off10 = !ok && a !== 0 && [10, 100, 1000].some(f => Math.abs(x * f - a) <= Math.abs(a) * tol || Math.abs(x / f - a) <= Math.abs(a) * tol);
@@ -501,18 +519,24 @@ function record(c) {
   else if (s < 0.5) { t.streak = Math.min(0, t.streak) - 1; if (t.level > 1) { t.level--; t.streak = 0; } }
   else t.streak = 0;
   S.quiz.history.push({ topic: t.id, q: c.q, score: s });
-  if (progKey()) store.set(progKey(), Object.fromEntries(S.topics.map(x => [x.id, { m: x.m, n: x.n, got: x.got, level: x.level, on: x.on }])));
+  if (c.q.id) S.seen.add(c.q.id);
+  if (progKey()) store.set(progKey(), { ...Object.fromEntries(S.topics.map(x => [x.id, { m: x.m, n: x.n, got: x.got, level: x.level, on: x.on }])), __seen: [...S.seen] });
 }
 async function check(reveal) {
   const c = S.quiz.cur; if (!c || c.locked || c.marking) return;
   if (reveal) { c.res = { score: 0, revealed: true }; c.locked = true; record(c); renderQuiz(); prefetch(); return; }
+  if (c.q.type === 'short' && !c.ai && (c.q.rubric || []).length) {
+    if (!c.self) { c.self = true; return renderQuiz(); }
+    const n = c.q.rubric.length, k = c.st.ticks.length;
+    c.res = { score: k / n, feedback: `You gave yourself ${k} of ${n} marking point${n === 1 ? '' : 's'}.` }; c.locked = true; record(c); renderQuiz(); prefetch(); return;
+  }
   c.marking = true; renderQuiz();
   try { c.res = await mark(c); c.locked = true; record(c); prefetch(); }
   catch (e) { c.markErr = errText(e); }
   c.marking = false; renderQuiz();
 }
 // warm the buffer for the most likely next topic while the student reads the feedback
-function prefetch() { const Q = S.quiz, t = Q.focus ? S.topics.find(x => x.id === Q.focus) : active().sort((a, b) => (a.m ?? -1) - (b.m ?? -1))[0]; if (t && (Q.focus || t.id !== Q.lastTopic)) ensure(t).catch(() => {}); }
+function prefetch() { if (S.bank.length) return; const Q = S.quiz, t = Q.focus ? S.topics.find(x => x.id === Q.focus) : active().sort((a, b) => (a.m ?? -1) - (b.m ?? -1))[0]; if (t && (Q.focus || t.id !== Q.lastTopic)) ensure(t).catch(() => {}); }
 
 function renderQuiz() {
   if (S.screen !== 'quiz') return;
@@ -570,17 +594,22 @@ function quizBody(c, t) {
   }
   const lv = `<span class="lvl" aria-label="Level ${q.level} of 3">${[1, 2, 3].map(i => `<i class="${i <= q.level ? 'on' : ''}"></i>`).join('')}</span>`;
   return `<div class="meta"><span class="chip">${esc(t.name)}</span><span class="chip o">${TYPE[q.type]}${lv}</span></div>
-    <div class="qtext">${fmt(q.q)}</div>${body}
+    <div class="qtext">${fmt(q.q)}</div>${q.fig && q.fromBank ? `<div class="fig">${q.fig}</div>` : ''}${body}
+    ${c.self && !lock ? `<div class="fb part"><p class="h">FULL-MARKS ANSWER</p><div>${fmt(q.model)}</div><p class="h">TICK EACH POINT YOUR ANSWER MAKES</p>
+      <div class="selfmark">${q.rubric.map((r, i) => `<label><input type="checkbox" data-tick="${i}" ${st.ticks.includes(i) ? 'checked' : ''}><span>${fmt(r)}</span></label>`).join('')}</div>
+      ${S.hasClaude ? '<div class="row"><button class="btn ghost small" id="askai">Ask Claude to mark it instead</button></div>' : ''}</div>` : ''}
     ${c.marking ? `<div class="thinking">${PLEAT('loader')}<span>Marking your answer…</span></div>` : ''}${c.markErr ? `<p class="note bad">${esc(c.markErr)}</p>` : ''}${fb}
     <div class="spread">${lock ? '<span></span>' : `<button class="btn ghost" id="reveal" ${c.marking ? 'disabled' : ''}>I don’t know</button>`}
-      <button class="btn" id="prim" ${!lock && (!answered(c) || c.marking) ? 'disabled' : ''}>${lock ? 'Next question →' : c.marking ? 'Marking…' : 'Check'}</button></div>`;
+      <button class="btn" id="prim" ${!lock && (!answered(c) || c.marking) ? 'disabled' : ''}>${lock ? 'Next question →' : c.marking ? 'Marking…' : c.self ? 'Save my mark' : 'Check'}</button></div>`;
 }
 function bindAnswer(c) {
   if (c.locked) return;
   const q = c.q, st = c.st, upd = () => { const p = $('#prim'); if (p) p.disabled = !answered(c) || c.marking; };
   $$('.opt').forEach(b => b.onclick = () => { const i = +b.dataset.i; if (q.type === 'multi') st.sel = st.sel.includes(i) ? st.sel.filter(x => x !== i) : [...st.sel, i]; else st.sel = i; renderQuiz(); });
   const num = $('#num'); if (num) { num.oninput = () => { st.val = num.value; upd(); }; num.onkeydown = e => { if (e.key === 'Enter' && answered(c)) check(false); }; setTimeout(() => num.focus({ preventScroll: true }), 0); }
-  const sh = $('#short'); if (sh) sh.oninput = () => { st.val = sh.value; upd(); };
+  const sh = $('#short'); if (sh) { sh.oninput = () => { st.val = sh.value; upd(); }; if (c.self) sh.disabled = true; }
+  $$('[data-tick]').forEach(b => b.onchange = () => { const i = +b.dataset.tick; st.ticks = b.checked ? [...st.ticks, i] : st.ticks.filter(x => x !== i); });
+  const ai = $('#askai'); if (ai) ai.onclick = () => { c.ai = true; c.self = false; check(false); };
   $$('.mv button').forEach(b => b.onclick = () => { const p = +b.dataset.p, d = +b.dataset.d; [st.ord[p], st.ord[p + d]] = [st.ord[p + d], st.ord[p]]; renderQuiz(); });
 }
 document.addEventListener('keydown', e => {
@@ -610,9 +639,9 @@ function renderDone() {
 }
 
 ['dragover', 'drop'].forEach(t => window.addEventListener(t, e => e.preventDefault()));
-sampler();
+sampler().then(s => { S.hasClaude = !!s; });
 render();
 fetch('pack.json').then(r => r.ok ? r.json() : null).then(p => { if (p && S.screen === 'upload' && !S.files.length) loadPack(p); }).catch(() => {});
-window.__unfold = { S, render, squeeze, parseNum, mark, validQ, pickTopic, record };
+window.__unfold = { S, render, loadPack, setupQ, takeBank, squeeze, parseNum, mark, validQ, pickTopic, record };
 })();
 </script>
