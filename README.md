@@ -28,7 +28,7 @@ The quiz is one HTML file: mock exam laid out like the past exam, topic drills, 
 ## Install
 **Claude Code / desktop:** clone into your skills folder:
 ```bash
-git clone https://github.com/<you>/study-drill-kit ~/.claude/skills/study-drill
+git clone https://github.com/ShayJah/study-drill-kit ~/.claude/skills/study-drill
 ```
 **claude.ai:** zip the folder and upload it in claude.ai’s Skills settings, or add `SKILL.md` and the templates to a Project's knowledge.
 
