@@ -181,7 +181,8 @@ const app = $('#app');
 const LIVE_URL = 'https://claude.ai/artifact/V6E7BXJvt7WjDbUuwAQxpN';
 
 /* ================= state ================= */
-const S = { subject: 'physics', topicsText: '', files: [], pages: [], docs: [], topics: [], screen: 'upload', parse: null, quiz: null };
+const S = { subject: 'physics', topicsText: '', files: [], pages: [], docs: [], topics: [], screen: 'upload', parse: null, quiz: null, pack: null };
+const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 const SUBJECTS = { physics: 'Physics', dsa: 'Data Structures & Algorithms', other: 'Something else' };
 const HINTS = {
   physics: 'Prefer "num" questions with realistic values and SI units, plus concept "mc" questions on directions, signs and which equation applies. Work every number out step by step and double-check it before you write "ans". Use g = 9.8 m/s² unless the notes say otherwise. Set "tol" to 0.02.',
@@ -246,7 +247,7 @@ function renderUpload() {
       <div class="seg" role="group" aria-labelledby="subj-l">${Object.entries(SUBJECTS).map(([k, v]) => `<button data-subj="${k}" aria-pressed="${S.subject === k}">${v}</button>`).join('')}</div>
       <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose lecture PDFs">
         ${PLEAT()}<b>Drop your lecture PDFs</b><span>or click to choose. Add as many as you like.</span>
-        <input type="file" id="pick" accept="application/pdf,.pdf" multiple hidden>
+        <input type="file" id="pick" accept="application/pdf,.pdf,.json" multiple hidden>
       </div>
       ${n ? `<ul class="files">${S.files.map((f, i) => `<li><span class="nm">${esc(f.name)}</span><span class="sz">${(f.size / 1048576).toFixed(1)} MB</span><button class="x" data-rm="${i}" aria-label="Remove ${esc(f.name)}">×</button></li>`).join('')}</ul>` : ''}
       <details class="more" ${S.topicsText ? 'open' : ''}><summary>Add the exam topic list <span class="fine" style="font-weight:400">(recommended)</span></summary>
@@ -269,6 +270,8 @@ function renderUpload() {
   $('#start').onclick = startParse;
 }
 function addFiles(list) {
+  const pack = [...list].find(f => /\.json$/i.test(f.name));
+  if (pack) return pack.text().then(t => loadPack(JSON.parse(t))).catch(() => alertBad('That file isn’t an Unfold course pack.'));
   const pdfs = [...list].filter(f => /\.pdf$/i.test(f.name) || f.type === 'application/pdf');
   const have = new Set(S.files.map(f => f.name + f.size));
   pdfs.forEach(f => { if (!have.has(f.name + f.size)) S.files.push(f); });
@@ -278,7 +281,7 @@ function addFiles(list) {
 /* ---------- parse: read → squeeze → find topics → pick topics ---------- */
 async function startParse() {
   S.parse = { step: 0, detail: ['', '', '', ''], fail: null, pagesDone: 0, pagesTotal: 0, before: 0, after: 0 };
-  S.pages = []; S.docs = []; S.topics = [];
+  S.pages = []; S.docs = []; S.topics = []; S.pack = null;
   go('parse');
   try {
     if (!window.pdfjsLib) throw { msg: 'The PDF reader didn’t load. Check your connection and reload.' };
@@ -342,10 +345,11 @@ function renderParse() {
       ${P.fail ? `<p class="note bad">${esc(P.fail)}</p><div class="row">${P.step >= 2 ? '<button class="btn" id="retry">Try again</button>' : ''}<button class="btn ghost" id="save">Save the notes file</button>${window.claude ? '' : `<a class="btn" href="${LIVE_URL}" target="_blank" rel="noopener">Open in claude.ai</a>`}</div>` : ''}
     </div>
     ${ready ? `<div class="topics">${S.topics.map(t => `<div class="tp ${t.on ? '' : 'off'}"><button class="box" data-t="${t.id}" aria-pressed="${t.on}" aria-label="Include ${esc(t.name)} in the mix">${t.on ? '✓' : ''}</button><span class="n">${esc(t.name)}</span><button class="btn ghost small" data-go="${t.id}">Practise →</button><span class="w">${esc(t.why)}${t.n ? ` · ${Math.round(t.m * 100)}% over ${t.n}` : ''}</span></div>`).join('')}</div>
-      <div class="spread"><button class="btn ghost" id="save">Save the notes file</button><button class="btn" id="go" ${S.topics.some(t => t.on) ? '' : 'disabled'}>Mix ticked topics</button></div>` : ''}
+      <div class="spread"><div class="row"><button class="btn ghost" id="save">Save the notes file</button><button class="btn ghost" id="savepack">Save course pack</button></div><button class="btn" id="go" ${S.topics.some(t => t.on) ? '' : 'disabled'}>Mix ticked topics</button></div>` : ''}
   </section>`;
   $('#back').onclick = () => go('upload');
   const sv = $('#save'); if (sv) sv.onclick = saveNotes;
+  const sp = $('#savepack'); if (sp) sp.onclick = savePack;
   const rt = $('#retry'); if (rt) rt.onclick = startParse;
   $$('.tp .box').forEach(b => b.onclick = () => { const t = S.topics.find(x => x.id === b.dataset.t); t.on = !t.on; renderParse(); });
   $$('.tp [data-go]').forEach(b => b.onclick = () => practise(b.dataset.go));
@@ -357,8 +361,26 @@ const notesMd = () => S.docs.filter(d => !d.skipped).map(d => {
   const ps = S.pages.filter(p => p.doc === d.name.replace(/\.pdf$/i, ''));
   return `# ${d.name.replace(/\.pdf$/i, '')}\n` + ps.map(p => `\n## p${p.page}\n${p.text || '[image only: check the PDF]'}`).join('\n');
 }).join('\n\n---\n\n') + '\n';
-async function saveNotes(ev) {
-  const btn = ev && ev.currentTarget, data = notesMd(), name = 'unfold-notes.md';
+const saveNotes = ev => saveFile(ev, 'unfold-notes.md', notesMd());
+// a course pack = compressed notes + topics, so a course reopens without the PDFs
+const PACK = 'unfold-pack@1';
+const packOf = () => ({ schema: PACK, name: S.pack || SUBJECTS[S.subject], subject: S.subject, topicsText: S.topicsText, docs: S.docs, pages: S.pages,
+  stats: { pagesTotal: S.parse.pagesTotal, before: S.parse.before, after: S.parse.after }, topics: S.topics.map(({ id, name, why, refs, on }) => ({ id, name, why, refs, on })) });
+const savePack = ev => saveFile(ev, (S.pack || SUBJECTS[S.subject]).replace(/[^\w&+ -]+/g, '').trim() + '.unfold.json', JSON.stringify(packOf()));
+const progKey = () => S.pack && 'unfold-progress:' + S.pack;
+function loadPack(p) {
+  if (!p || p.schema !== PACK || !Array.isArray(p.pages) || !Array.isArray(p.topics)) throw new Error('not a pack');
+  const saved = store.get('unfold-progress:' + p.name) || {};
+  Object.assign(S, { pack: p.name, subject: SUBJECTS[p.subject] ? p.subject : 'other', topicsText: p.topicsText || '', docs: p.docs || [], pages: p.pages, quiz: null,
+    topics: p.topics.map(t => ({ m: null, n: 0, got: 0, level: 1, streak: 0, ...t, ...(saved[t.id] || {}) })) });
+  const st = p.stats || {}, nd = S.docs.filter(d => !d.skipped).length;
+  S.parse = { step: 3, fail: null, pagesDone: st.pagesTotal, pagesTotal: st.pagesTotal || S.pages.length, before: st.before || 0, after: st.after || 0,
+    detail: [`${st.pagesTotal || S.pages.length} pages from ${nd} PDF${nd === 1 ? '' : 's'}`, st.before ? `${kfmt(st.before)}+ → ${kfmt(st.after)} tokens` : '', `${S.topics.length} topics · ${p.name}`, ''] };
+  go('parse');
+}
+const alertBad = msg => { const z = $('#drop'); if (z) { z.querySelector('span').textContent = msg; } };
+async function saveFile(ev, name, data) {
+  const btn = ev && ev.currentTarget;
   const flash = t => { if (btn) { const o = btn.textContent; btn.textContent = t; setTimeout(() => { btn.textContent = o; }, 2200); } };
   if (window.claude && claude.use) {
     const d = await claude.use('downloads').catch(() => null);
@@ -479,6 +501,7 @@ function record(c) {
   else if (s < 0.5) { t.streak = Math.min(0, t.streak) - 1; if (t.level > 1) { t.level--; t.streak = 0; } }
   else t.streak = 0;
   S.quiz.history.push({ topic: t.id, q: c.q, score: s });
+  if (progKey()) store.set(progKey(), Object.fromEntries(S.topics.map(x => [x.id, { m: x.m, n: x.n, got: x.got, level: x.level, on: x.on }])));
 }
 async function check(reveal) {
   const c = S.quiz.cur; if (!c || c.locked || c.marking) return;
@@ -589,6 +612,7 @@ function renderDone() {
 ['dragover', 'drop'].forEach(t => window.addEventListener(t, e => e.preventDefault()));
 sampler();
 render();
+fetch('pack.json').then(r => r.ok ? r.json() : null).then(p => { if (p && S.screen === 'upload' && !S.files.length) loadPack(p); }).catch(() => {});
 window.__unfold = { S, render, squeeze, parseNum, mark, validQ, pickTopic, record };
 })();
 </script>
